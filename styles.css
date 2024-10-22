@@ -1,0 +1,111 @@
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f4f4f4;
+}
+header {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    text-align: center;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+}
+h1, h2 {
+    margin: 0 0 1rem 0;
+}
+.section {
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+textarea, input[type="text"] {
+    width: calc(100% - 1rem);  /* Subtract padding from width */
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0.5rem;
+    resize: none;
+    overflow-x: auto;
+    white-space: nowrap;
+    box-sizing: border-box;  /* Include padding in width calculation */
+}
+textarea {
+    height: 3em;
+}
+select {
+    margin-right: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    max-width: calc(100% - 1rem);  /* Prevent overflow */
+}
+button {
+    margin-right: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 20px;
+    background: linear-gradient(145deg, #3498db, #2980b9);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+button:hover {
+    background: linear-gradient(145deg, #2980b9, #3498db);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+.visualization {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    height: 300px;
+    background-color: #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-style: italic;
+    color: #777;
+    margin-bottom: 1rem;
+}
+.controls {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+.hidden {
+    display: none;
+}
+.word-size {
+    margin-top: 1rem;
+}
+.diff-checker {
+    margin-top: 1rem;
+}
+input[type="number"] {
+    width: 60px;
+    padding: 0.3rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+.input-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.input-group > * {
+    margin-right: 0.5rem;
+}
+.input-group > *:last-child {
+    margin-right: 0;
+}
