@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WAH Compression Demo (Word Size 8)</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        #compressedSoFar {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>WAH Compression Demo (Word Size 8)</h1>
+    <canvas id="myCanvas" width="600" height="300"></canvas>
+    <br>
+    <button id="nextButton">Next Step</button>
+    <button id="resetButton">Reset</button>
+    <div id="compressedSoFar">
+        <strong>Compressed So Far:</strong> <span id="compressedContent"></span>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const uncompressed = '010100100000000000000000000011111111111111111111111111111110101';
+
+        function simplifyString(runType, litSize) {
+            let originalString = runType.repeat(litSize);
+            const halfSize = Math.floor(litSize / 2);
+            const start = Math.floor((litSize - halfSize) / 2);
+            const end = start + halfSize;
+            const simplifiedString = 
+                originalString.slice(0, start) + 
+                '.'.repeat(halfSize) + 
+                originalString.slice(end);
+            return simplifiedString;
+        }
+
+        function drawCanvas(state, transition = 0) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Uncompressed display
+            ctx.font = '30px monospace';
+            ctx.fillStyle = 'black';
+
+            const uncompressedDigitWidth = ctx.measureText("0").width;
+            const start_point = 5 - (transition * state.litSize * uncompressedDigitWidth);
+            const result = Math.ceil(canvas.width / uncompressedDigitWidth);
+            let current_uncompressed;
+
+            if (state.runs > 1) {
+                let simplifiedString = simplifyString(state.runType, state.litSize);
+                const new_start = state.startIndex + state.litSize * state.runs;
+                current_uncompressed = simplifiedString + uncompressed.substring(new_start, new_start + result);
+            } else {
+                current_uncompressed = uncompressed.substring(state.startIndex, state.startIndex + result + state.litSize);
+            }
+
+            let highlightWidth = state.litSize * uncompressedDigitWidth;
+            ctx.fillText(current_uncompressed, start_point, 60);
+
+            // Highlight around current step
+            ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+            ctx.fillRect(5, 30, highlightWidth, 40);
+
+            // Subtext
+            ctx.font = '22px Arial';
+            ctx.fillStyle = 'black';
+            let top_text = state.runs === 0 ? 'Literal' : `${state.runs} runs of ${state.runType}'s`;
+            ctx.fillText(top_text, 20, 100);
+
+            // Compressed
+            ctx.font = 'bold 130px monospace';
+            ctx.fillStyle = 'black';
+            ctx.fillText(state.compressed, 0, 230);
+
+            const compressedWidth = ctx.measureText(state.compressed).width;
+            const bitWidth = compressedWidth / state.compressed.length;
+            const gap = 5;
+
+            if (state.runs > 0) {
+                // Underline first bit
+                ctx.strokeStyle = 'red';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(gap, 240);
+                ctx.lineTo(bitWidth - gap, 240);
+                ctx.stroke();
+                ctx.font = '20px Arial';
+                ctx.fillStyle = 'black';
+                ctx.fillText('run', gap, 270);
+
+                // Underline second bit
+                ctx.strokeStyle = 'blue';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(bitWidth + gap, 240);
+                ctx.lineTo(2 * bitWidth - gap, 240);
+                ctx.stroke();
+                ctx.fillText(`of ${state.runType}'s`, gap + bitWidth, 270);
+
+                // Underline rest of the string
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(bitWidth * 2 + gap, 240);
+                ctx.lineTo(compressedWidth - gap, 240);
+                ctx.stroke();
+                ctx.fillText(`${state.runs} times`, 2 * bitWidth + gap * 2, 270);
+
+            } else {
+                // Literal
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(bitWidth + gap, 240);
+                ctx.lineTo(compressedWidth - gap, 240);
+                ctx.stroke();
+                ctx.font = '20px Arial';
+                ctx.fillStyle = 'black';
+                ctx.fillText(`literal`, bitWidth + gap * 2, 270);
+            }
+
+            // Add small text in the bottom right
+            ctx.font = '12px Arial';
+            ctx.fillStyle = 'black';
+            ctx.fillText(`word : ${state.step}`, canvas.width - 100, canvas.height - 10);
+        }
+
+        const states = [
+            {
+                runs: 0,
+                runType: '0',
+                litSize: 7,
+                startIndex: 0,
+                compressed: '00101001',
+                step: 1
+            },
+            {
+                runs: 3,
+                runType: '0',
+                litSize: 7,
+                startIndex: 7,
+                compressed: '10000011',
+                step: 2
+            },
+            {
+                runs: 4,
+                runType: '1',
+                litSize: 7,
+                startIndex: 28,
+                compressed: '11000100',
+                step: 3
+            },
+            {
+                runs: 0,
+                runType: '0',
+                litSize: 7,
+                startIndex: 56,
+                compressed: '01110101',
+                step: 4
+            }
+        ];
+
+        let currentStateIndex = 0;
+
+        function updateCompressedSoFar() {
+            let compressedSoFar = '';
+            for (let i = 0; i <= currentStateIndex; i++) {
+                compressedSoFar += states[i].compressed;
+            }
+            document.getElementById('compressedContent').innerText = compressedSoFar;
+        }
+
+        function transition() {
+            const fromState = states[currentStateIndex];
+
+            if (currentStateIndex < states.length - 1) {
+                currentStateIndex++;
+            } else {
+                // Reached the last state, disable the button
+                document.getElementById('nextButton').disabled = true;
+                return;
+            }
+
+            const toState = states[currentStateIndex];
+            const duration = 500; // 500 milliseconds
+            const startTime = performance.now();
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                drawCanvas(fromState, progress);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    drawCanvas(toState);
+                    updateCompressedSoFar();
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        document.getElementById('nextButton').addEventListener('click', transition);
+
+        document.getElementById('resetButton').addEventListener('click', function() {
+            currentStateIndex = 0;
+            document.getElementById('nextButton').disabled = false;
+            document.getElementById('compressedContent').innerText = '';
+            drawCanvas(states[currentStateIndex]);
+        });
+
+        // Initial draw
+        drawCanvas(states[currentStateIndex]);
+        updateCompressedSoFar();
+    </script>
+</body>
+</html>
