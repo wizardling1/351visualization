@@ -18,7 +18,7 @@ const diffStrings = (expected, actual) => {
                 Math.max(0, startIndex-seekBefore), 
                 startIndex
         );
-        if (before.length > 0) before = "..." + before;
+        if (startIndex - seekBefore > 0) before = "..." + before;
         before = before.padStart(seekBefore+3, ' ');
         let after = str.substring(
             startIndex, 
@@ -121,17 +121,59 @@ const testWAH = () => {
 }
 
 const testVAL = () => {
+    const valManualTests = [
+        // input, expectedOutput, wordSize, segementLength, testName
+        ["1010001" + "1".repeat(7*2), "01"+"1010001"+"1000010", 16, 2, "literal + 2 runs of 1s"],
+        ["1".repeat(7*2) + "1010001", "10"+"1000010"+"1010001", 16, 2, "2 runs of 1s + literal"],
+        ["1010001" + "1".repeat(7*32), "01"+"1010001"+"1100000", 16, 2, "literal + 32 runs of 1s"],
+        ["1".repeat(7*32) + "1010001", "10"+"1100000"+"1010001", 16, 2, "32 runs of 1s + literal"],
+        ["1010001" + "0".repeat(7*2), "01"+"1010001"+"0000010", 16, 2, "literal + 2 runs of 0s"],
+        ["0".repeat(7*2) + "1010001", "10"+"0000010"+"1010001", 16, 2, "2 runs of 0s + literal"],
+        ["1010001" + "0".repeat(7*32), "01"+"1010001"+"0100000", 16, 2, "literal + 32 runs of 0s"],
+        ["0".repeat(7*32) + "1010001", "10"+"0100000"+"1010001", 16, 2, "32 runs of 0s + literal"],
+        ["1010001".repeat(16), ("00"+"1010001".repeat(2)).repeat(8), 16, 2, "16 literals"],
+        ["1010001".repeat(100000), ("00"+"1010001".repeat(2)).repeat(50000), 16, 2, "100000 literals"],
+        // starts failing when some chunk needs to encode runs with no literals
+        ["1".repeat(7*3), "11"+"1000011"+"0000000", 16, 2, "3 runs of 1s"], // equivalently, the correct answer could be "11" + "1000011" + "1000000"
+        ["1".repeat(7*1) + "0".repeat(7*1), "11"+"1000001"+"0000001", 16, 2, "1 run of 1s + 1 run of 0s"],
+        ["1".repeat(7*16) + "0".repeat(7*16), "11"+"1010000"+"0010000", 16, 2, "16 runs of 1s + 16 runs of 0s"],
+        [   
+            "1010001".repeat(16) + "0".repeat(7*32), 
+            ("00"+"1010001".repeat(2)).repeat(8) + "11"+"1100000"+"0000000", 
+            16,
+            2,
+            "16 literals + 32 runs of 0s"
+        ],
+    ]
     const valTestFiles = [
         ['data/animals', 32, 2],
         ['data/animals', 64, 2],
     ];
     console.log("\nTesting VAL...");
+    let manualTestInc = 0;
+    for (const [input, expectedOutput, wordSize, segementCount, testName] of valManualTests) {
+        manualTestInc++;
+        const compressed = valCompress(input, wordSize, segementCount);
+        const compressed_str = bitsToString(compressed, wordSize);
+        if (!diffStrings(expectedOutput, compressed_str)) {
+            console.log(`\n failed manual test ${manualTestInc}: ${testName}.`);
+            return;
+        }
+        console.log(`passed manual test ${manualTestInc}: ${testName}`);
+    }
     for (const [inputFile, wordSize, segmentCount] of valTestFiles) {
+        let colNum = 0;
         for (let col of getColumns(fs.readFileSync(inputFile, 'utf8'))) {
+            colNum++;
             const compressed = valCompress(col, wordSize, segmentCount);
             const decompressed = valDecompress(compressed.compressed, compressed.length,
                 wordSize, segmentCount);
+            if (!diffStrings(col, bitsToString({compressed: decompressed, length: decompressed.length}, wordSize))) {
+                console.log("\n" + inputFile + `: failed to compress column ${colNum} correctly`);
+                return;
+            }
         }
+        console.log(inputFile + ": passed all columns");
     }
 }
 
