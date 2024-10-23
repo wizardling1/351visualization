@@ -2,9 +2,11 @@ import * as fs from 'fs';
 import { bbcCompress  } from './bbc.js';
 import { wahCompress, valCompress, valDecompress } from './compression.js';
 
-const bitsToString = (arr, wordSize) => {
-    return Array.from(arr).map(
-        num => num.toString(2).padStart(wordSize, '0')
+const asUnsigned = (num) => typeof num === "bigint" ? BigInt.asUintN(64, num) : num;
+
+const bitsToString = (bits, wordSize) => {
+    return Array.from(bits.compressed).slice(0, bits.length).map(
+        num => asUnsigned(num).toString(2).padStart(wordSize, '0')
     ).join('');
 }
 
@@ -28,7 +30,7 @@ const diffStrings = (expected, actual) => {
 
     for (let i = 0; i < zipLen; i++) {
         if (expected[i] != actual[i]) {
-            console.log(`\nstrings differ: expected[${i}] = ${expected[i]}, actual[${i}] = ${actual[i]}`);
+            console.log(`\nstrings differ at ${i}/${zipLen}: expected[${i}] = ${expected[i]}, actual[${i}] = ${actual[i]}`);
             console.log("expected: " + viewStr(expected, i));
             console.log("actual:   " + viewStr(actual, i));
             console.log("          " + " ".repeat(seekBefore+3) + "^");
@@ -57,7 +59,7 @@ const diffStrings = (expected, actual) => {
 }
 
 const getColumns = (input) => {
-    const rows = input.trim().split('\n');
+    const rows = input.trim().split(/\r?\n/);
     const numCols = rows[0].length;
     const columns = Array.from({length: numCols}, () => '');
     for (let row of rows) {
@@ -71,7 +73,7 @@ const getColumns = (input) => {
 const testCompressionAlg = (compressionAlg, inputFile, expectedOutputFile) => {
     const inputFileStr = fs.readFileSync(inputFile, 'utf8');
     const expectedOutputFileStr = fs.readFileSync(expectedOutputFile, 'utf8');
-    const expectedOutputFileRows = expectedOutputFileStr.split('\n');
+    const expectedOutputFileRows = expectedOutputFileStr.split(/\r?\n/);
     const compressedCols = getColumns(inputFileStr).map(col => compressionAlg(col));
     for (let i = 0; i < compressedCols.length; i++) {
         if (!diffStrings(expectedOutputFileRows[i], compressedCols[i])) {
@@ -99,19 +101,19 @@ const testWAH = () => {
     const wahTestFiles = [
         // ['data/animals', 'data/animals_WAH_4', 4],
         ['data/animals', 'data/animals_WAH_8', 8],
-        // ['data/animals', 'data/animals_WAH_16', 16],
-        // ['data/animals', 'data/animals_WAH_32', 32],
-        // ['data/animals', 'data/animals_WAH_64', 64],
+        ['data/animals', 'data/animals_WAH_16', 16],
+        ['data/animals', 'data/animals_WAH_32', 32],
+        ['data/animals', 'data/animals_WAH_64', 64],
         // ['data/animals_sorted', 'data/animals_sorted_WAH_4', 4],
-        // ['data/animals_sorted', 'data/animals_sorted_WAH_8', 8],
-        // ['data/animals_sorted', 'data/animals_sorted_WAH_16', 16],
-        // ['data/animals_sorted', 'data/animals_sorted_WAH_32', 32],
-        // ['data/animals_sorted', 'data/animals_sorted_WAH_64', 64],
+        ['data/animals_sorted', 'data/animals_sorted_WAH_8', 8],
+        ['data/animals_sorted', 'data/animals_sorted_WAH_16', 16],
+        ['data/animals_sorted', 'data/animals_sorted_WAH_32', 32],
+        ['data/animals_sorted', 'data/animals_sorted_WAH_64', 64],
     ];
     console.log("\nTesting WAH...");
     for (const [inputFile, expectedOutputFile, wordSize] of wahTestFiles) {
         const wahCompression = (index) => 
-            bitsToString(wahCompress(index, wordSize).compressed, wordSize);
+            bitsToString(wahCompress(index, wordSize), wordSize);
 
         if (!testCompressionAlg(wahCompression, inputFile, expectedOutputFile)) 
             return;
@@ -121,13 +123,14 @@ const testWAH = () => {
 const testVAL = () => {
     const valTestFiles = [
         ['data/animals', 32, 2],
+        ['data/animals', 64, 2],
     ];
     console.log("\nTesting VAL...");
     for (const [inputFile, wordSize, segmentCount] of valTestFiles) {
         for (let col of getColumns(fs.readFileSync(inputFile, 'utf8'))) {
             const compressed = valCompress(col, wordSize, segmentCount);
-            const decompressed = valDecompress(compressed, compressed.length, 
-                                                wordSize, segmentCount);
+            const decompressed = valDecompress(compressed.compressed, compressed.length,
+                wordSize, segmentCount);
         }
     }
 }
