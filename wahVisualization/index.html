@@ -6,6 +6,10 @@
     <style>
         canvas {
             border: 1px solid black;
+            width: 100%; /* Make canvas responsive */
+            max-width: 600px;
+            height: auto;
+            max-height: 300px;
         }
         button {
             margin-top: 10px;
@@ -20,7 +24,7 @@
 </head>
 <body>
     <h1>WAH Compression Demo (Word Size 8)</h1>
-    <canvas id="myCanvas" width="600" height="300"></canvas>
+    <canvas id="myCanvas"></canvas>
     <br>
     <button id="nextButton">Next Step</button>
     <button id="resetButton">Reset</button>
@@ -32,6 +36,13 @@
         const canvas = document.getElementById('myCanvas');
         const ctx = canvas.getContext('2d');
         const uncompressed = '010100100000000000000000000011111111111111111111111111111110101';
+
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = 600 * dpr;
+        canvas.height = 300 * dpr;
+        canvas.style.width = '600px';
+        canvas.style.height = '300px';
+        ctx.scale(dpr, dpr);
 
         function simplifyString(runType, litSize) {
             let originalString = runType.repeat(litSize);
@@ -46,7 +57,7 @@
         }
 
         function drawCanvas(state, transition = 0) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
 
             // Uncompressed display
             ctx.font = '30px monospace';
@@ -54,7 +65,7 @@
 
             const uncompressedDigitWidth = ctx.measureText("0").width;
             const start_point = 5 - (transition * state.litSize * uncompressedDigitWidth);
-            const result = Math.ceil(canvas.width / uncompressedDigitWidth);
+            const result = Math.ceil(canvas.width / dpr / uncompressedDigitWidth);
             let current_uncompressed;
 
             if (state.runs > 1) {
@@ -133,7 +144,7 @@
             // Add small text in the bottom right
             ctx.font = '12px Arial';
             ctx.fillStyle = 'black';
-            ctx.fillText(`word : ${state.step}`, canvas.width - 100, canvas.height - 10);
+            ctx.fillText(`word : ${state.step}`, canvas.width / dpr - 100, canvas.height / dpr - 10);
         }
 
         const states = [
@@ -220,6 +231,7 @@
             document.getElementById('nextButton').disabled = false;
             document.getElementById('compressedContent').innerText = '';
             drawCanvas(states[currentStateIndex]);
+            updateCompressedSoFar();
         });
 
         // Initial draw
