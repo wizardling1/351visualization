@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { bbcCompress  } from './bbc.js';
-import { wahCompress, valCompress, valDecompress } from './compression.js';
+import { wahCompress, valCompress, valDecompress, getValSegmentLength } from './compression.js';
 
 const asUnsigned = (num) => typeof num === "bigint" ? BigInt.asUintN(64, num) : num;
 
@@ -133,13 +133,12 @@ const testVAL = () => {
         ["0".repeat(7*32) + "1010001", "10"+"0100000"+"1010001", 16, 2, "32 runs of 0s + literal"],
         ["1010001".repeat(16), ("00"+"1010001".repeat(2)).repeat(8), 16, 2, "16 literals"],
         ["1010001".repeat(100000), ("00"+"1010001".repeat(2)).repeat(50000), 16, 2, "100000 literals"],
-        // starts failing when some chunk needs to encode runs with no literals
         ["1".repeat(7*3), "11"+"1000011"+"0000000", 16, 2, "3 runs of 1s"], // equivalently, the correct answer could be "11" + "1000011" + "1000000"
         ["1".repeat(7*1) + "0".repeat(7*1), "11"+"1000001"+"0000001", 16, 2, "1 run of 1s + 1 run of 0s"],
         ["1".repeat(7*16) + "0".repeat(7*16), "11"+"1010000"+"0010000", 16, 2, "16 runs of 1s + 16 runs of 0s"],
         [   
             "1010001".repeat(16) + "0".repeat(7*32), 
-            ("00"+"1010001".repeat(2)).repeat(8) + "11"+"1100000"+"0000000", 
+            ("00"+"1010001".repeat(2)).repeat(8) + "11"+"0100000"+"0000000", 
             16,
             2,
             "16 literals + 32 runs of 0s"
@@ -166,10 +165,10 @@ const testVAL = () => {
         for (let col of getColumns(fs.readFileSync(inputFile, 'utf8'))) {
             colNum++;
             const compressed = valCompress(col, wordSize, segmentCount);
-            const decompressed = valDecompress(compressed.compressed, compressed.length,
-                wordSize, segmentCount);
-            if (!diffStrings(col, bitsToString({compressed: decompressed, length: decompressed.length}, wordSize))) {
-                console.log("\n" + inputFile + `: failed to compress column ${colNum} correctly`);
+            const decompressed = valDecompress(compressed, wordSize, segmentCount);
+            const segmentSize = getValSegmentLength(wordSize, segmentCount);
+            if (!diffStrings(col, bitsToString(decompressed, segmentSize).slice(0, col.length))) {
+                console.log("\n" + inputFile + ` (${wordSize}): failed to compress column ${colNum} correctly`);
                 return;
             }
         }

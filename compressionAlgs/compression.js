@@ -124,7 +124,6 @@ export const valCompress = (index, wordSize, segmentCount) => {
     const scanLength = getValSegmentLength(wordSize, segmentCount);
 
     const allSegmentsLength = segmentCount * scanLength;
-    // index = index.padEnd(Math.ceil(index.length / allSegmentsLength) * allSegmentsLength, '0');
 
     const output = getTypedArray(wordSize, Math.ceil(index.length / allSegmentsLength));
     const cast = getCast(wordSize);
@@ -132,19 +131,24 @@ export const valCompress = (index, wordSize, segmentCount) => {
 
     const maxValue = (cast(1) << cast(scanLength)) - cast(1);
 
+    let defaultWord = cast(0);
+
+    for (let i = 0; i < segmentCount; i++) {
+        defaultWord |= cast(1) << cast(wordSize - i - 1);
+    }
+
     let outputIndex = 0;
     let isInRun = false;
     let runLength = 0;
     let runType = 0;
     let i = 0;
 
-    let pendingWord = cast(0);
+    let pendingWord = defaultWord;
     let pendingCount = 0;
 
     const outputRun = () => {
         ++pendingCount;
         pendingWord |= ((cast(runType) << cast(scanLength - 1)) | cast(runLength)) << cast((segmentCount - pendingCount) * scanLength);
-        pendingWord |= cast(1) << cast(wordSize - pendingCount);
 
         flushPendingSegments();
     }
@@ -155,7 +159,7 @@ export const valCompress = (index, wordSize, segmentCount) => {
             ++outputIndex;
 
             pendingCount = 0;
-            pendingWord = cast(0);
+            pendingWord = defaultWord;
         }
     }
 
@@ -164,7 +168,7 @@ export const valCompress = (index, wordSize, segmentCount) => {
             if (runType != currentType) {
                 outputRun();
                 runLength = 1;
-                runType = 1 - currentType;
+                runType = currentType;
             } else {
                 ++runLength;
             }
@@ -198,6 +202,7 @@ export const valCompress = (index, wordSize, segmentCount) => {
             }
 
             ++pendingCount;
+            pendingWord &= ~(cast(1) << cast(wordSize - pendingCount));
             pendingWord |= nextBits << cast((segmentCount - pendingCount) * scanLength);
             flushPendingSegments();
         }
@@ -216,7 +221,7 @@ export const valCompress = (index, wordSize, segmentCount) => {
 }
 
 // Helps when testing valCompress.
-export const valDecompress = (compressed, length, wordSize, segmentCount) => {
+export const valDecompress = (compressed, wordSize, segmentCount) => {
     const scanLength = getValSegmentLength(wordSize, segmentCount);
     const cast = getCast(wordSize);
 
@@ -225,8 +230,8 @@ export const valDecompress = (compressed, length, wordSize, segmentCount) => {
 
     const index = [];
 
-    for (let wordI = 0; wordI < length; ++wordI) {
-        const word = compressed[wordI];
+    for (let wordI = 0; wordI < compressed.length; ++wordI) {
+        const word = compressed.compressed[wordI];
 
         for (let segmentI = 0; segmentI < segmentCount; ++segmentI) {
             const headerBit = (word >> cast(wordSize - 1 - segmentI)) & cast(1);
@@ -249,5 +254,8 @@ export const valDecompress = (compressed, length, wordSize, segmentCount) => {
         }
     }
 
-    return index;
+    return {
+        compressed: index,
+        length: index.length,
+    };
 }
