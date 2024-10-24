@@ -63,6 +63,8 @@
             ctx.font = '30px monospace';
             ctx.fillStyle = 'black';
 
+            let compressedFontSize = Math.min(130, canvas.width / dpr / state.compressed.length * 1.4);
+            console.log(compressedFontSize)
             const uncompressedDigitWidth = ctx.measureText("0").width;
             const start_point = 5 - (transition * state.litSize * uncompressedDigitWidth);
             const result = Math.ceil(canvas.width / dpr / uncompressedDigitWidth);
@@ -90,7 +92,7 @@
             ctx.fillText(top_text, 20, 100);
 
             // Compressed
-            ctx.font = 'bold 130px monospace';
+            ctx.font = `bold ${compressedFontSize}px monospace`;
             ctx.fillStyle = 'black';
             ctx.fillText(state.compressed, 0, 230);
 
