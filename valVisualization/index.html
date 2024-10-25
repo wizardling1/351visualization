@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>VAL Compression Demo (Word Size 8)</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            width: 100%;
+            /* Make canvas responsive */
+            max-width: 600px;
+            height: auto;
+            max-height: 300px;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        #compressedSoFar {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>VAL Compression Demo (Word Size 8)</h1>
+    <canvas id="myCanvas"></canvas>
+    <br>
+    <button id="nextButton">Next Step</button>
+    <button id="resetButton">Reset</button>
+    <div id="compressedSoFar">
+        <strong>Compressed So Far:</strong> <span id="compressedContent"></span>
+    </div>
+
+    <script type="module">
+        import { valCompressToNodes, getValSegmentLength } from "../baseCompressAlgs/val.js";
+
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const uncompressed = '010100100000000000000000000011111111111111111111111111111110101';
+        const wordSize = 8;
+        const segmentCount = 1;
+        const segmentLength = getValSegmentLength(wordSize, segmentCount);
+
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = 600 * dpr;
+        canvas.height = 300 * dpr;
+        canvas.style.width = '600px';
+        canvas.style.height = '300px';
+        ctx.scale(dpr, dpr);
+
+        function simplifyString(runType, litSize) {
+            let originalString = runType.repeat(litSize);
+            const halfSize = Math.floor(litSize / 2);
+            const start = Math.floor((litSize - halfSize) / 2);
+            const end = start + halfSize;
+            const simplifiedString =
+                originalString.slice(0, start) +
+                '.'.repeat(halfSize) +
+                originalString.slice(end);
+            return simplifiedString;
+        }
+
+        function drawCanvas(states, stateIndex, transition = 0) {
+            const state = states[stateIndex];
+
+            ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+
+            // Uncompressed display
+            ctx.font = '30px monospace';
+            ctx.fillStyle = 'black';
+
+            let compressedFontSize = Math.min(130, canvas.width / dpr / state.compressed.length * 1.4);
+            console.log(compressedFontSize)
+            const uncompressedDigitWidth = ctx.measureText("0").width;
+            const start_point = 5 - (transition * state.litSize * uncompressedDigitWidth);
+            const result = Math.ceil(canvas.width / dpr / uncompressedDigitWidth);
+            let current_uncompressed;
+
+            if (state.runs > 1) {
+                let simplifiedString = simplifyString(state.runType, state.litSize);
+                const new_start = state.startIndex + state.litSize * state.runs;
+                current_uncompressed = simplifiedString + uncompressed.substring(new_start, new_start + result);
+            } else {
+                current_uncompressed = uncompressed.substring(state.startIndex, state.startIndex + result + state.litSize);
+            }
+
+            let highlightWidth = state.litSize * uncompressedDigitWidth;
+            ctx.fillText(current_uncompressed, start_point, 60);
+
+            // Highlight around current step
+            ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+            ctx.fillRect(5, 30, highlightWidth, 40);
+
+            // Subtext
+            ctx.font = '22px Arial';
+            ctx.fillStyle = 'black';
+            let top_text = state.runs === 0 ? 'Literal' : `${state.runs} runs of ${state.runType}'s`;
+            ctx.fillText(top_text, 20, 100);
+
+            // Compressed
+            ctx.font = `bold ${compressedFontSize}px monospace`;
+            ctx.fillStyle = 'black';
+            ctx.fillText(state.compressed, 0, 230);
+
+            const compressedWidth = ctx.measureText(state.compressed).width;
+            const bitWidth = compressedWidth / state.compressed.length;
+            const segmentWidth = bitWidth * segmentLength;
+            const gap = 5;
+
+            // Last segment so far in the current word.
+            const wordMaxSegment = stateIndex % segmentCount;
+
+            for (let segmentI = wordMaxSegment; segmentI >= 0; segmentI--) {
+                const segmentState = states[stateIndex - wordMaxSegment + segmentI];
+
+                const headerOffset = segmentI * bitWidth;
+                const segmentOffset = segmentI * segmentWidth + segmentCount * bitWidth;
+
+                if (segmentState.runs > 0) {
+                    // Underline first bit
+                    ctx.strokeStyle = 'red';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(headerOffset + gap, 240);
+                    ctx.lineTo(headerOffset + bitWidth - gap, 240);
+                    ctx.stroke();
+                    ctx.font = '20px Arial';
+                    ctx.fillStyle = 'black';
+                    ctx.fillText('run', headerOffset + gap, 270);
+
+                    // Underline second bit
+                    ctx.strokeStyle = 'blue';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(segmentOffset + gap, 240);
+                    ctx.lineTo(segmentOffset + bitWidth - gap, 240);
+                    ctx.stroke();
+                    ctx.fillText(`of ${segmentState.runType}'s`, segmentOffset + gap, 270);
+
+                    // Underline rest of the string
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(segmentOffset + bitWidth + gap, 240);
+                    ctx.lineTo(segmentOffset + segmentWidth - gap, 240);
+                    ctx.stroke();
+                    ctx.fillText(`${segmentState.runs} times`, segmentOffset + bitWidth + gap * 2, 270);
+
+                } else {
+                    // Literal
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(segmentOffset + gap, 240);
+                    ctx.lineTo(segmentOffset + segmentWidth - gap, 240);
+                    ctx.stroke();
+                    ctx.font = '20px Arial';
+                    ctx.fillStyle = 'black';
+                    ctx.fillText(`literal`, segmentOffset + bitWidth + gap * 2, 270);
+                }
+            }
+
+            // Add small text in the bottom right
+            ctx.font = '12px Arial';
+            ctx.fillStyle = 'black';
+            ctx.fillText(`word : ${state.step}`, canvas.width / dpr - 100, canvas.height / dpr - 10);
+        }
+
+        const states = valCompressToNodes(uncompressed, wordSize, segmentCount);
+        console.log(states);
+
+        let currentStateIndex = 0;
+
+        function updateCompressedSoFar() {
+            let compressedSoFar = '';
+            for (let i = segmentCount - 1; i <= currentStateIndex; i += segmentCount) {
+                compressedSoFar += states[i].compressed;
+            }
+
+            // The last few segments may not fill a full word, so just add what we have.
+            if (currentStateIndex == states.length - 1 && states.length % segmentCount != 0) {
+                compressedSoFar += states[currentStateIndex].compressed;
+            }
+
+            document.getElementById('compressedContent').innerText = compressedSoFar;
+        }
+
+        function transition() {
+            const fromStateIndex = currentStateIndex;
+
+            if (currentStateIndex < states.length - 1) {
+                currentStateIndex++;
+
+                if (currentStateIndex >= states.length - 1) {
+                    // Reached the last state, disable the button
+                    document.getElementById('nextButton').disabled = true;
+                }
+            } else {
+                return;
+            }
+
+            const toStateIndex = currentStateIndex;
+            const duration = 500; // 500 milliseconds
+            const startTime = performance.now();
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                drawCanvas(states, fromStateIndex, progress);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    drawCanvas(states, toStateIndex);
+                    updateCompressedSoFar();
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        document.getElementById('nextButton').addEventListener('click', transition);
+
+        document.getElementById('resetButton').addEventListener('click', function () {
+            currentStateIndex = 0;
+            document.getElementById('nextButton').disabled = false;
+            document.getElementById('compressedContent').innerText = '';
+            drawCanvas(states, currentStateIndex);
+            updateCompressedSoFar();
+        });
+
+        // Initial draw
+        drawCanvas(states, currentStateIndex);
+        updateCompressedSoFar();
+    </script>
+</body>
+
+</html>
