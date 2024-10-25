@@ -1,14 +1,7 @@
 import * as fs from 'fs';
-import { bbcCompress  } from './bbc.js';
-import { wahCompress, valCompress, valDecompress, getValSegmentLength } from './compression.js';
-
-const asUnsigned = (num) => typeof num === "bigint" ? BigInt.asUintN(64, num) : num;
-
-const bitsToString = (bits, wordSize) => {
-    return Array.from(bits.compressed).slice(0, bits.length).map(
-        num => asUnsigned(num).toString(2).padStart(wordSize, '0')
-    ).join('');
-}
+import { bbcCompress } from './bbc.js';
+import { wahCompress } from './wah.js';
+import { valCompress, valDecompress } from './val.js';
 
 const diffStrings = (expected, actual) => {
     const seekBefore = 20;
@@ -112,10 +105,8 @@ const testWAH = () => {
     ];
     console.log("\nTesting WAH...");
     for (const [inputFile, expectedOutputFile, wordSize] of wahTestFiles) {
-        const wahCompression = (index) => 
-            bitsToString(wahCompress(index, wordSize), wordSize);
-
-        if (!testCompressionAlg(wahCompression, inputFile, expectedOutputFile)) 
+        const wahCompressWordSize = (index) => wahCompress(index, wordSize).str;
+        if (!testCompressionAlg(wahCompressWordSize, inputFile, expectedOutputFile)) 
             return;
     }
 }
@@ -123,6 +114,7 @@ const testWAH = () => {
 const testVAL = () => {
     const valManualTests = [
         // input, expectedOutput, wordSize, segementLength, testName
+        ["", "", 16, 2, "empty string"],
         ["1010001" + "1".repeat(7*2), "01"+"1010001"+"1000010", 16, 2, "literal + 2 runs of 1s"],
         ["1".repeat(7*2) + "1010001", "10"+"1000010"+"1010001", 16, 2, "2 runs of 1s + literal"],
         ["1010001" + "1".repeat(7*32), "01"+"1010001"+"1100000", 16, 2, "literal + 32 runs of 1s"],
@@ -143,6 +135,7 @@ const testVAL = () => {
             2,
             "16 literals + 32 runs of 0s"
         ],
+        [("1".repeat(7) + "0".repeat(7)).repeat(1000), ("11"+"1000001"+"0000001").repeat(1000), 16, 2, "alternating runs"]
     ]
     const valTestFiles = [
         ['data/animals', 32, 2],
@@ -153,8 +146,7 @@ const testVAL = () => {
     for (const [input, expectedOutput, wordSize, segementCount, testName] of valManualTests) {
         manualTestInc++;
         const compressed = valCompress(input, wordSize, segementCount);
-        const compressed_str = bitsToString(compressed, wordSize);
-        if (!diffStrings(expectedOutput, compressed_str)) {
+        if (!diffStrings(expectedOutput, compressed.str)) {
             console.log(`\n failed manual test ${manualTestInc}: ${testName}.`);
             return;
         }
@@ -165,9 +157,8 @@ const testVAL = () => {
         for (let col of getColumns(fs.readFileSync(inputFile, 'utf8'))) {
             colNum++;
             const compressed = valCompress(col, wordSize, segmentCount);
-            const decompressed = valDecompress(compressed, wordSize, segmentCount);
-            const segmentSize = getValSegmentLength(wordSize, segmentCount);
-            if (!diffStrings(col, bitsToString(decompressed, segmentSize).slice(0, col.length))) {
+            const decompressed = valDecompress(compressed, wordSize, segmentCount, col.length);
+            if (!diffStrings(col, decompressed.str)) {
                 console.log("\n" + inputFile + ` (${wordSize}): failed to compress column ${colNum} correctly`);
                 return;
             }
