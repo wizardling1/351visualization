@@ -44,7 +44,7 @@
         const ctx = canvas.getContext('2d');
         const uncompressed = '010100100000000000000000000011111111111111111111111111111110101';
         const wordSize = 8;
-        const segmentCount = 1;
+        const segmentCount = 2;
         const segmentLength = getValSegmentLength(wordSize, segmentCount);
 
         const dpr = window.devicePixelRatio || 1;
@@ -122,6 +122,8 @@
                 const headerOffset = segmentI * bitWidth;
                 const segmentOffset = segmentI * segmentWidth + segmentCount * bitWidth;
 
+                ctx.globalAlpha = 1 * Math.pow(0.5, wordMaxSegment - segmentI);
+
                 if (segmentState.runs > 0) {
                     // Underline first bit
                     ctx.strokeStyle = 'red';
@@ -165,6 +167,8 @@
                     ctx.fillText(`literal`, segmentOffset + bitWidth + gap * 2, 270);
                 }
             }
+
+            ctx.globalAlpha = 1;
 
             // Add small text in the bottom right
             ctx.font = '12px Arial';
