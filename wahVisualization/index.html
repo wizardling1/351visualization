@@ -70,7 +70,8 @@
                 current_uncompressed = simplifiedString + uncompressed.substring(new_start, new_start + result);
             } else {
                 // this calculation takes into account the current run we are displaing and puts "litsize" digits afterwards so that the animation can happen
-                current_uncompressed = uncompressed.substring(state.startIndex + ((curr_run - 1) * state.litSize), state.startIndex + result + state.litSize + ((curr_run - 1) * state.litSize));
+                curr_offset = curr_run === 0 ? 0 :(curr_run - 1) * state.litSize;
+                current_uncompressed = uncompressed.substring(state.startIndex + curr_offset, state.startIndex + result + state.litSize + curr_offset);
             }
 
             let highlightWidth = state.litSize * uncompressedDigitWidth;
