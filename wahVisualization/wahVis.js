@@ -1,5 +1,5 @@
 class wahVis {
-    constructor(canvasId, compressedContentId, states, litSize) {
+    constructor(canvasId, compressedContentId, states, litSize, uncompressed) {
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext('2d');
         this.compressedContentElement = document.getElementById(compressedContentId);
@@ -9,7 +9,7 @@ class wahVis {
         this.currentStateIndex = 0;
         this.currRunShown = 0;
 
-        this.uncompressed = '010100100000000000000000000011111111111111111111111111111110101';
+        this.uncompressed = uncompressed;
 
         // Canvas setup
         const dpr = window.devicePixelRatio || 1;

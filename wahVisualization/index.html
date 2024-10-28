@@ -72,7 +72,8 @@
 
         // Initialize the wahVis class with litSize
         const litSize = 7;
-        const wahVisualizer = new wahVis('myCanvas', 'compressedContent', states, litSize);
+        const uncompressed = '010100100000000000000000000011111111111111111111111111111110101';
+        const wahVisualizer = new wahVis('myCanvas', 'compressedContent', states, litSize, uncompressed);
 
         // Button event listeners
         document.getElementById('nextButton').addEventListener('click', function() {
