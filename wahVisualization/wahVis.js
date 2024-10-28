@@ -1,9 +1,10 @@
 class wahVis {
-    constructor(canvasId, compressedContentId, states) {
+    constructor(canvasId, compressedContentId, states, litSize) {
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext('2d');
         this.compressedContentElement = document.getElementById(compressedContentId);
         this.states = states;
+        this.litSize = litSize;
 
         this.currentStateIndex = 0;
         this.currRunShown = 0;
@@ -37,23 +38,23 @@ class wahVis {
         let compressedFontSize = Math.min(130, canvas.width / dpr / state.compressed.length * 1.4);
 
         const uncompressedDigitWidth = ctx.measureText("0").width;
-        const start_point = 5 - (transition * state.litSize * uncompressedDigitWidth);
+        const start_point = 5 - (transition * this.litSize * uncompressedDigitWidth);
         // Calculate the number of digits that can fit in the canvas width
         const canFit = Math.ceil(canvas.width / dpr / uncompressedDigitWidth);
         let current_uncompressed;
 
         if (state.runs > 1 && curr_run == state.runs) {    // here we simplify the runs displayed
 
-            // the simplyString function turns a bunch of runs into 11..11
-            let simplifiedString = simplifyString(state.runType, state.litSize);
-            const new_start = state.startIndex + state.litSize * state.runs;
+            // the simplifyString function turns a bunch of runs into 11..11
+            let simplifiedString = simplifyString(state.runType, this.litSize);
+            const new_start = state.startIndex + this.litSize * state.runs;
             current_uncompressed = simplifiedString + this.uncompressed.substring(new_start, new_start + canFit);
         } else {
-            let curr_offset = curr_run === 0 ? 0 : (curr_run - 1) * state.litSize;
-            current_uncompressed = this.uncompressed.substring(state.startIndex + curr_offset, state.startIndex + canFit + state.litSize + curr_offset);
+            let curr_offset = curr_run === 0 ? 0 : (curr_run - 1) * this.litSize;
+            current_uncompressed = this.uncompressed.substring(state.startIndex + curr_offset, state.startIndex + canFit + this.litSize + curr_offset);
         }
 
-        let highlightWidth = state.litSize * uncompressedDigitWidth;
+        let highlightWidth = this.litSize * uncompressedDigitWidth;
         ctx.fillText(current_uncompressed, start_point, 60);
 
         // Highlight around current step
@@ -67,7 +68,7 @@ class wahVis {
         ctx.fillText(top_text, 20, 100);
 
         // Compressed
-        let compressed = state.runs === 0 ? state.compressed : `1${state.runType}${decimalToBinary(curr_run, state.litSize - 1)}`;
+        let compressed = state.runs === 0 ? state.compressed : `1${state.runType}${decimalToBinary(curr_run, this.litSize - 1)}`;
 
 
         ctx.font = `bold ${compressedFontSize}px monospace`;
@@ -168,6 +169,7 @@ class wahVis {
         if (this.currentStateIndex >= this.states.length - 1 && this.currRunShown >= fromState.runs) {
             document.getElementById('nextButton').disabled = true;
             document.getElementById('microButton').disabled = true;
+            this.updateCompressedSoFar(true);
             return;
         }
 
@@ -181,7 +183,7 @@ class wahVis {
         requestAnimationFrame(this.animate(fromState, fromRun, performance.now()).bind(this));
     }
 
-    // if we are in the middle of a state, or at the end we step back to the beggining
+    // if we are in the middle of a state, or at the end we step back to the beginning
     stepBack() {    
         const fromState = this.states[this.currentStateIndex];
         const fromRun = this.currRunShown;
@@ -229,6 +231,4 @@ class wahVis {
             }
         };
     }
-
-
 }
