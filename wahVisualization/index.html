@@ -6,7 +6,7 @@
     <style>
         canvas {
             border: 1px solid black;
-            width: 100%; /* Make canvas responsive */
+            width: 100%;
             max-width: 600px;
             height: auto;
             max-height: 300px;
@@ -27,129 +27,18 @@
     <canvas id="myCanvas"></canvas>
     <br>
     <button id="backButton">Back Step</button>
-    <button id="microButton">micro Step</button>
+    <button id="microButton">Micro Step</button>
     <button id="nextButton">Next Step</button>
     <button id="resetButton">Reset</button>
     <div id="compressedSoFar">
         <strong>Compressed So Far:</strong> <span id="compressedContent"></span>
     </div>
 
-    <script src="helperFunctions.js"></script>
+    <!-- Include the wahVis class and helperFunctions.js -->
+     <script src="helperFunctions.js"> </script>
+    <script src="wahVis.js"></script>
     <script>
-        const canvas = document.getElementById('myCanvas');
-        const ctx = canvas.getContext('2d');
-        const uncompressed = '010100100000000000000000000011111111111111111111111111111110101';
-
-        const dpr = window.devicePixelRatio || 1;
-        canvas.width = 600 * dpr;
-        canvas.height = 300 * dpr;
-        canvas.style.width = '600px';
-        canvas.style.height = '300px';
-        ctx.scale(dpr, dpr);
-
-        
-
-        function drawCanvas(state, transition = 0, curr_run = state.runs,) {
-            ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-
-            // Uncompressed display
-            ctx.font = '30px monospace';
-            ctx.fillStyle = 'black';
-
-            let compressedFontSize = Math.min(130, canvas.width / dpr / state.compressed.length * 1.4);
-
-            const uncompressedDigitWidth = ctx.measureText("0").width;
-            const start_point = 5 - (transition * state.litSize * uncompressedDigitWidth);
-            const result = Math.ceil(canvas.width / dpr / uncompressedDigitWidth);
-            let current_uncompressed;
-
-
-            if (state.runs > 1 && curr_run == state.runs) {
-                let simplifiedString = simplifyString(state.runType, state.litSize);
-                const new_start = state.startIndex + state.litSize * state.runs;
-                current_uncompressed = simplifiedString + uncompressed.substring(new_start, new_start + result);
-            } else {
-                // this calculation takes into account the current run we are displaing and puts "litsize" digits afterwards so that the animation can happen
-                curr_offset = curr_run === 0 ? 0 :(curr_run - 1) * state.litSize;
-                current_uncompressed = uncompressed.substring(state.startIndex + curr_offset, state.startIndex + result + state.litSize + curr_offset);
-            }
-
-            let highlightWidth = state.litSize * uncompressedDigitWidth;
-            ctx.fillText(current_uncompressed, start_point, 60);
-
-            // Highlight around current step
-            ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
-            ctx.fillRect(5, 30, highlightWidth, 40);
-
-            // Subtext
-            ctx.font = '22px Arial';
-            ctx.fillStyle = 'black';
-            let top_text = state.runs === 0 ? 'Literal' : `${curr_run} runs of ${state.runType}'s`;
-            ctx.fillText(top_text, 20, 100);
-
-            // Compressed
-
-            // build up the compres
-            let compressed = state.runs === 0 ? state.compressed : `1${state.runType}${decimalToBinary(curr_run, state.litSize-1)}`
-
-
-            ctx.font = `bold ${compressedFontSize}px monospace`;
-            ctx.fillStyle = 'black';
-            ctx.fillText(compressed, 0, 230);
-
-            const compressedWidth = ctx.measureText(state.compressed).width;
-            const bitWidth = compressedWidth / state.compressed.length;
-            const gap = 5;
-
-            if (state.runs > 0) {
-                // Underline first bit
-                ctx.strokeStyle = 'red';
-                ctx.lineWidth = 4;
-                ctx.beginPath();
-                ctx.moveTo(gap, 240);
-                ctx.lineTo(bitWidth - gap, 240);
-                ctx.stroke();
-                ctx.font = '20px Arial';
-                ctx.fillStyle = 'black';
-                ctx.fillText('run', gap, 270);
-
-                // Underline second bit
-                ctx.strokeStyle = 'blue';
-                ctx.lineWidth = 4;
-                ctx.beginPath();
-                ctx.moveTo(bitWidth + gap, 240);
-                ctx.lineTo(2 * bitWidth - gap, 240);
-                ctx.stroke();
-                ctx.fillText(`of ${state.runType}'s`, gap + bitWidth, 270);
-
-                // Underline rest of the string
-                ctx.strokeStyle = 'black';
-                ctx.lineWidth = 4;
-                ctx.beginPath();
-                ctx.moveTo(bitWidth * 2 + gap, 240);
-                ctx.lineTo(compressedWidth - gap, 240);
-                ctx.stroke();
-                ctx.fillText(`${curr_run} times`, 2 * bitWidth + gap * 2, 270);
-
-            } else {
-                // Literal
-                ctx.strokeStyle = 'black';
-                ctx.lineWidth = 4;
-                ctx.beginPath();
-                ctx.moveTo(bitWidth + gap, 240);
-                ctx.lineTo(compressedWidth - gap, 240);
-                ctx.stroke();
-                ctx.font = '20px Arial';
-                ctx.fillStyle = 'black';
-                ctx.fillText(`literal`, bitWidth + gap * 2, 270);
-            }
-
-            // Add small text in the bottom right
-            ctx.font = 'bold 15px Arial';
-            ctx.fillStyle = 'black';
-            ctx.fillText(`word : ${state.step}`, canvas.width / dpr - 100, canvas.height / dpr - 10);
-        }
-
+        // Define the states for the visualization
         const states = [
             {
                 runs: 0,
@@ -185,130 +74,22 @@
             }
         ];
 
-        
+        // Initialize the wahVis class
+        const wahVisualizer = new wahVis('myCanvas', 'compressedContent', states);
 
-        function updateCompressedSoFar() {
-            let compressedSoFar = '';
-            for (let i = 0; i < currentStateIndex; i++) {
-                compressedSoFar += states[i].compressed;
-            }
-            document.getElementById('compressedContent').innerText = compressedSoFar;
-        }
-
-
-        // animate between forward states...
-        function animate(fromState, fromRun, startTime) {
-            return function(currentTime) {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / 500, 1);
-
-            drawCanvas(fromState, progress, fromRun);
-
-            if (progress < 1) {
-                requestAnimationFrame(animate(fromState, fromRun, startTime, 500));
-            } else {
-                drawCanvas(states[currentStateIndex], 0, currRunShown);
-                updateCompressedSoFar();
-            }
-            }
-        }
-
-        let currentStateIndex = 0;
-        let currRunShown = 0;
-
-        function transitionNext() {
-            const fromState = states[currentStateIndex];
-            const fromRun = currRunShown
-
-            // make sure we are not on the last step
-            if (currentStateIndex >= states.length - 1) {
-                document.getElementById('nextButton').disabled = true;
-                document.getElementById('microButton').disabled = true;
-                return;
-            }
-
-            // if we are in the middle of a micro step go to the end of the current state
-            if (currRunShown != fromState.runs) { 
-                currRunShown = fromState.runs;
-
-            } else if (currentStateIndex < states.length - 1) {    // otherwise go to next state
-                currentStateIndex++;
-                currRunShown = states[currentStateIndex].runs;
-            }
-            requestAnimationFrame(animate(fromState, fromRun, performance.now()));
-        }
-
-
-        function transitionMicro(){
-            const fromState = states[currentStateIndex];
-            const fromRun = currRunShown
-
-            // make sure we havnet reached the last step
-            if (currentStateIndex >= states.length - 1 && currRunShown >= fromState.runs) {
-                document.getElementById('nextButton').disabled = true;
-                document.getElementById('microButton').disabled = true;
-                return;
-            }
-
-            if (fromState.runs == 0 || currRunShown == fromState.runs) {
-                currentStateIndex++;
-                currRunShown = 1;
-            } else {
-                currRunShown++;
-            }
-            requestAnimationFrame(animate(fromState, fromRun, performance.now()));
-
-        }
-
-        function stepBack(){
-
-            // if we are in the middle of a state, or at the end we step back to the beggining
-            const fromState = states[currentStateIndex];
-            const fromRun = currRunShown
-
-            if ((currentStateIndex == 0 && fromState.runs == 0) || currentStateIndex == 0 && fromRun == 1 ){
-                return; // we are at the first step
-            }
-
-
-            // if the state was a literal or we were on the first run
-            if (fromState.runs == 0 || fromRun == 1){ 
-                // go to the previous step
-                currentStateIndex--;
-                currRunShown = states[currentStateIndex].runs;
-
-            } else { // go back to showing the first run otherwise
-                currRunShown = 1;
-
-            }
-
-            drawCanvas(states[currentStateIndex], 0, currRunShown);
-            updateCompressedSoFar();
-
-
-        }
-
-        document.getElementById('nextButton').addEventListener('click', transitionNext);
-        document.getElementById('microButton').addEventListener('click', transitionMicro);
-        document.getElementById('backButton').addEventListener('click', stepBack);
-        document.getElementById('resetButton').addEventListener('click', function() {
-            currentStateIndex = 0;
-            currRunShown = states[currentStateIndex].runs
-            document.getElementById('nextButton').disabled = false;
-            document.getElementById('microButton').disabled = false;
-            document.getElementById('compressedContent').innerText = '';
-            drawCanvas(states[currentStateIndex]);
-            updateCompressedSoFar();
+        // Button event listeners
+        document.getElementById('nextButton').addEventListener('click', function() {
+            wahVisualizer.transitionNext();
         });
-
-        // Initial draw
-
-       
-
-        drawCanvas(states[currentStateIndex]);
-        updateCompressedSoFar();
-
-        
+        document.getElementById('microButton').addEventListener('click', function() {
+            wahVisualizer.transitionMicro();
+        });
+        document.getElementById('backButton').addEventListener('click', function() {
+            wahVisualizer.stepBack();
+        });
+        document.getElementById('resetButton').addEventListener('click', function() {
+            wahVisualizer.reset();
+        });
     </script>
 </body>
 </html>
