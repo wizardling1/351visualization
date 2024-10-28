@@ -109,3 +109,15 @@ input[type="number"] {
 .input-group > *:last-child {
     margin-right: 0;
 }
+
+/* Diff Checker */
+.diff-container {
+    white-space: pre-wrap;
+    font-family: monospace;
+}
+.added {
+    background-color: #d4fcbc;
+}
+.removed {
+    background-color: #fbb6c2;
+}
