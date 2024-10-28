@@ -2,7 +2,7 @@ document.getElementById('compare-btn').addEventListener('click', function() {
     var text1 = document.getElementById('text1').value;
     var text2 = document.getElementById('text2').value;
 
-    var diff = Diff.diffWordsWithSpace(text1, text2);
+    var diff = Diff.diffChars(text1, text2);
 
     var display = document.createElement('div');
     display.classList.add('diff-container');
