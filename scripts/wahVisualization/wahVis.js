@@ -128,7 +128,7 @@ class wahVis {
         // Add small text in the bottom right
         ctx.font = `bold 15px Arial`;
         ctx.fillStyle = 'black';
-        ctx.fillText(`word : ${state.step}`, canvasWidth - 100, canvasHeight - 10);
+        ctx.fillText(`word : ${this.currentStateIndex + 1}`, canvasWidth - 100, canvasHeight - 10);
     }
     
 
@@ -210,7 +210,7 @@ class wahVis {
 
     // reset to the beginning
     reset() {
-        console.log("reset")
+        
         this.currentStateIndex = 0;
         this.currRunShown = this.states[this.currentStateIndex].runs;
         // document.getElementById('nextButton').disabled = false;

@@ -1,54 +1,42 @@
 import wahVis from '../scripts/wahVisualization/wahVis.js';
+import { wahCompressWithStates } from '../scripts/compression/animation_states/wahWithStates.js';
 
-// Now you can use the wahVis class in this file
-const canvasId = 'animationCanvas';
-const compressedContentId = 'compressedContent';
-const states = [
-    {
-        runs: 0,
-        runType: '0',
-        startIndex: 0,
-        compressed: '00101001',
-        step: 1
-    },
-    {
-        runs: 3,
-        runType: '0',
-        startIndex: 7,
-        compressed: '10000011',
-        step: 2
-    },
-    {
-        runs: 4,
-        runType: '1',
-        startIndex: 28,
-        compressed: '11000100',
-        step: 3
-    },
-    {
-        runs: 0,
-        runType: '0',
-        startIndex: 56,
-        compressed: '01110101',
-        step: 4
-    }
-];
+// get settings and input from local
+const savedSettings = JSON.parse(localStorage.getItem('compressionSettings'));
+const savedInputData = localStorage.getItem('inputData');
 
-const litSize = 7;
-const uncompressed = '010100100000000000000000000011111111111111111111111111111110101';
 
-const wahVisualizer = new wahVis(canvasId, compressedContentId, states, litSize, uncompressed);
+// Check if the settings and input data are valid
+if (!savedSettings || savedSettings.compressionMethod !== 'wah' || savedSettings.wordSize !== 8) {
+    document.getElementById('VisTitle').innerHTML = 'Oops, currently only WAH 8 visualization is supported';
+} else if (!savedInputData || savedInputData.length < 8) {
+    document.getElementById('VisTitle').innerHTML = 'Please go to live view and input your uncompressed bits';
+} else {
+    // Now you can use the wahVis class in this file
 
-// Add event listeners for buttons
-document.getElementById('next-step').addEventListener('click', function() {
-    wahVisualizer.transitionNext();
-});
-document.getElementById('micro-step').addEventListener('click', function() {
-    wahVisualizer.transitionMicro();
-});
-document.getElementById('back-step').addEventListener('click', function() {
-    wahVisualizer.stepBack();
-});
-document.getElementById('reset-btn').addEventListener('click', function() {
-    wahVisualizer.reset();
-});
+    const states = wahCompressWithStates(savedInputData, 8);
+
+
+    const canvasId = 'animationCanvas';
+    const compressedContentId = 'compressedContent';
+
+    const litSize = 7;
+
+   // old test const uncompressed = '010100100000000000000000000011111111111111111111111111111110101';
+
+    const wahVisualizer = new wahVis(canvasId, compressedContentId, states, litSize, savedInputData);
+
+    // Add event listeners for buttons
+    document.getElementById('next-step').addEventListener('click', function() {
+        wahVisualizer.transitionNext();
+    });
+    document.getElementById('micro-step').addEventListener('click', function() {
+        wahVisualizer.transitionMicro();
+    });
+    document.getElementById('back-step').addEventListener('click', function() {
+        wahVisualizer.stepBack();
+    });
+    document.getElementById('reset-btn').addEventListener('click', function() {
+        wahVisualizer.reset();
+    });
+}
