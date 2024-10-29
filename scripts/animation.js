@@ -6,6 +6,7 @@ const savedSettings = JSON.parse(localStorage.getItem('compressionSettings'));
 const savedInputData = localStorage.getItem('inputData');
 
 
+
 // Check if the settings and input data are valid
 if (!savedSettings || savedSettings.compressionMethod !== 'wah' || savedSettings.wordSize !== 8) {
     document.getElementById('VisTitle').innerHTML = 'Oops, currently only WAH 8 visualization is supported';
@@ -15,6 +16,7 @@ if (!savedSettings || savedSettings.compressionMethod !== 'wah' || savedSettings
     // Now you can use the wahVis class in this file
 
     const states = wahCompressWithStates(savedInputData, 8);
+    //console.log(states)
 
 
     const canvasId = 'animationCanvas';

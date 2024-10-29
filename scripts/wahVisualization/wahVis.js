@@ -9,7 +9,7 @@ class wahVis {
         this.litSize = litSize;
 
         this.currentStateIndex = 0;
-        this.currRunShown = 0;
+        this.currRunShown = states[this.currentStateIndex].runs;
 
         this.uncompressed = uncompressed;
 
@@ -179,7 +179,7 @@ class wahVis {
 
         if (fromState.runs == 0 || this.currRunShown == fromState.runs) {
             this.currentStateIndex++;
-            this.currRunShown = 1;
+            this.currRunShown = 0;
         } else {
             this.currRunShown++;
         }
