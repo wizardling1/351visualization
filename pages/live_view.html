@@ -7,6 +7,7 @@
     <!-- Bootstrap -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="../styles/styles.css">
+    <link rel="stylesheet" href="../styles/live_view.css">
 </head>
 <body>
 
@@ -34,8 +35,53 @@
         </div>
     </nav>
 
-    <p>Live view goes here</p>
+    <section class="section input-section">
+        <h2>Input</h2>
+        <textarea id="input-data" placeholder="Enter your bitmap data (1s and 0s)"></textarea>
+        <div id="word-size-container" class="word-size hidden">
+            <label for="word-size">Word Size:</label>
+            <input type="number" id="word-size" min="2" value="32">
+        </div>
 
+        <h2>Compressed Output</h2>
+        <textarea id="compressed-output" readonly placeholder="Compressed bits will appear here"></textarea>
+        <p id="selectionDescription" style="color: red"></p>
+
+        <div class="container">
+            <div class="selection-row">
+                <div class="selection-label" id="compressionSelector">Compression Method</div>
+                <div class="btn-group">
+                    <button class="btn selected" id='wahButton'>WAH</button>
+                    <button class="btn" id='valButton'>VAL</button>
+                    <button class="btn" id='bbcButton'>BBC</button>
+                </div>
+            </div>
+
+            <div class="selection-row" id="wordSizeSelector">
+                <div class="selection-label">Word Size</div>
+                <div class="btn-group">
+                    <button class="btn selected" id="wordSize8Button">8</button>
+                    <button class="btn" id="wordSize16Button">16</button>
+                    <button class="btn" id="wordSize32Button">32</button>
+                    <button class="btn" id="wordSize64Button">64</button>
+                </div>
+            </div>
+
+            <div class="selection-row" id="segmentSizeSelector">
+                <div class="selection-label">Segment Size</div>
+                <div class="btn-group">
+                    <button class="btn " style="display: none">1</button>
+                    <button class="btn selected" style="display: none" id="segmentSize2Button">2</button>
+                    <button class="btn " style="display: none">4</button>
+                    <button class="btn " style="display: none">8</button>
+                    <button class="btn " style="display: none">16</button>
+                    <button class="btn " style="display: none">32</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script type='module' src='../scripts/live_view.js'></script>
     <!-- Bootstrap -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
