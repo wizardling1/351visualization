@@ -41,16 +41,20 @@
     <section class="section visualization-section">
         <h2>Visualization</h2>
         <div class="visualization">
-            Compression visualization will appear here
+            <canvas id="animationCanvas"></canvas>
         </div>
         <div class="controls">
-            <button id="prev-step">Previous Step</button>
+            <button id="back-step">Back Step</button>
+            <button id="micro-step">Micro Step</button>
             <button id="next-step">Next Step</button>
-            <button id="export-btn">Export</button>
+            <button id="reset-btn">Reset</button>
+        </div>
+        <div id="compressedSoFar">
+            <strong>Compressed So Far:</strong> <span id="compressedContent"></span>
         </div>
     </section>
 
-    <script src="../scripts/animation.js"></script>
+    <script type="module" src="../scripts/animation.js"></script>
 
     <!-- Bootstrap -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

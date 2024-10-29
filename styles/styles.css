@@ -65,18 +65,7 @@ button:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
-.visualization {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    height: 300px;
-    background-color: #eee;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-style: italic;
-    color: #777;
-    margin-bottom: 1rem;
-}
+
 .controls {
     display: flex;
     justify-content: space-between;
@@ -120,4 +109,40 @@ input[type="number"] {
 }
 .removed {
     background-color: #fbb6c2;
+}
+
+#animationCanvas {
+    border: 2px solid rgb(88, 88, 88);
+    width: 100%;
+    max-width: 1200px;
+    height: auto;
+    max-height: 600px;
+    background-color: white;
+    border-radius: 8px;
+}
+
+#animationCanvas + button {
+    margin-top: 10px;
+    padding: 10px;
+    font-size: 16px;
+}
+
+#compressedSoFar {
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+.visualization {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    height: auto;
+    background-color: #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-style: italic;
+    color: #777;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    box-sizing: border-box;
 }
