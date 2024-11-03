@@ -42,11 +42,21 @@ class wahVis {
         let compressedFontSize = Math.min(130, canvasWidth / state.compressed.length * 1.4);
     
         const uncompressedDigitWidth = ctx.measureText("0").width;
-        const start_point = 5 - (transition * this.litSize * uncompressedDigitWidth);
+        const start_point = - (transition * this.litSize * uncompressedDigitWidth);
+
         // Calculate the number of digits that can fit in the canvas width
         const canFit = Math.ceil(canvasWidth / uncompressedDigitWidth);
         let current_uncompressed;
     
+        
+        
+        // get the highlight in the middle
+        const highlightStartDigit = Math.floor(Math.floor(canvasWidth/uncompressedDigitWidth)/2) - Math.floor(this.litSize / 2)
+        let highlightWidth = this.litSize * uncompressedDigitWidth;
+        let highlightStart = highlightStartDigit  * uncompressedDigitWidth;
+        let uncompressedStartIndex = state.startIndex;
+        uncompressedStartIndex += curr_run === 0 ? 0 : (curr_run - 1) * this.litSize;
+        // first if we dont have enough digits before start then fill with spaces
         if (state.runs > 1 && curr_run == state.runs) {    // here we simplify the runs displayed
     
             // the simplifyString function turns a bunch of runs into 11..11
@@ -54,17 +64,40 @@ class wahVis {
             const new_start = state.startIndex + this.litSize * state.runs;
             current_uncompressed = simplifiedString + this.uncompressed.substring(new_start, new_start + canFit);
         } else {
-            let curr_offset = curr_run === 0 ? 0 : (curr_run - 1) * this.litSize;
-            current_uncompressed = this.uncompressed.substring(state.startIndex + curr_offset, state.startIndex + canFit + this.litSize + curr_offset);
+            
+            current_uncompressed = this.uncompressed.substring(uncompressedStartIndex, uncompressedStartIndex + canFit + this.litSize);
         }
-    
-        let highlightWidth = this.litSize * uncompressedDigitWidth;
+
+        // get the functional start index
+        const startIndex = (state.runs > 1 && curr_run == state.runs) ? state.startIndex : uncompressedStartIndex;
+
+        // generate fill string to fill up space upto highlight
+        
+        let fillString;
+        // we dont have enough in uncompressed before
+        if (startIndex < highlightStartDigit){
+            const spaces_needed = highlightStartDigit - startIndex;
+            fillString = " ".repeat(spaces_needed) + this.uncompressed.substring(0, startIndex)
+        } else { // fill with chars before the start index
+            fillString = this.uncompressed.substring(startIndex - highlightStartDigit, startIndex)
+        }
+
+        current_uncompressed = fillString + current_uncompressed
+
+
+
         ctx.fillText(current_uncompressed, start_point, 60);
     
         // Highlight around current step
         ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
-        ctx.fillRect(5, 30, highlightWidth, 40);
+        ctx.fillRect(highlightStart, 30, highlightWidth, 40);
     
+
+
+
+
+
+
         // Subtext
         ctx.font = `22px Arial`;
         ctx.fillStyle = 'black';

@@ -16,7 +16,7 @@ if (!savedSettings || savedSettings.compressionMethod !== 'wah' || savedSettings
     // Now you can use the wahVis class in this file
 
     const states = wahCompressWithStates(savedInputData, savedSettings.wordSize);
-    console.log(states)
+    //console.log(states)
 
 
     const canvasId = 'animationCanvas';
