@@ -156,8 +156,6 @@ class wahVis {
         const fromRun = this.currRunShown;
 
         if (this.currentStateIndex >= this.states.length - 1) {
-            // document.getElementById('nextButton').disabled = true;
-            // document.getElementById('microButton').disabled = true;
             this.updateCompressedSoFar(true);
             return;
         }
@@ -177,17 +175,24 @@ class wahVis {
         const fromState = this.states[this.currentStateIndex];
         const fromRun = this.currRunShown;
 
+        // if we are at the last state already
         if (this.currentStateIndex >= this.states.length - 1 && this.currRunShown >= fromState.runs) {
-            // document.getElementById('nextButton').disabled = true;
-            // document.getElementById('microButton').disabled = true;
             this.updateCompressedSoFar(true);
             return;
         }
 
+        //if we are comming from a literal or end of run
         if (fromState.runs == 0 || this.currRunShown == fromState.runs) {
             this.currentStateIndex++;
-            this.currRunShown = 0;
-        } else {
+            if (this.states[this.currentStateIndex].runs == 0){
+                //current state is a literal
+                this.currRunShown = 0;
+            } else {
+                //current state is a run
+                this.currRunShown = 1;
+            }
+            
+        } else { // otherwise just increment the run shown
             this.currRunShown++;
         }
 
