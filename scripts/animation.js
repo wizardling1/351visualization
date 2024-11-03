@@ -28,17 +28,38 @@ if (!savedSettings || savedSettings.compressionMethod !== 'wah' || savedSettings
 
     const wahVisualizer = new wahVis(canvasId, compressedContentId, states, litSize, savedInputData);
 
+    // Function to scroll to the end of the compressed content
+    function scrollToEnd() {
+        const compressedContent = document.getElementById('compressedContent');
+        // Force a reflow to ensure content width is calculated correctly
+        compressedContent.style.display = 'none';
+        compressedContent.offsetHeight; // Force reflow
+        compressedContent.style.display = 'block';
+        
+        // Use requestAnimationFrame to ensure DOM updates are complete
+        requestAnimationFrame(() => {
+            compressedContent.scrollTo({
+                left: compressedContent.scrollWidth,
+                behavior: 'smooth'
+            });
+        });
+    }
+
     // Add event listeners for buttons
     document.getElementById('next-step').addEventListener('click', function() {
         wahVisualizer.transitionNext();
+        setTimeout(scrollToEnd, 600); // Increased delay
     });
     document.getElementById('micro-step').addEventListener('click', function() {
         wahVisualizer.transitionMicro();
+        setTimeout(scrollToEnd, 500); // Increased delay
     });
     document.getElementById('back-step').addEventListener('click', function() {
         wahVisualizer.stepBack();
+        
     });
     document.getElementById('reset-btn').addEventListener('click', function() {
         wahVisualizer.reset();
+        
     });
 }
