@@ -173,13 +173,25 @@ class wahVis {
     
 
     updateCompressedSoFar(lastElement = false) {
-        let compressedSoFar = "";
-        // this is the number of states we go through we we are on the last element print all states.
-        const numOfStates = lastElement ? this.currentStateIndex + 1 : this.currentStateIndex; 
-        for (let i = 0; i < numOfStates; i++) {
-            compressedSoFar += this.states[i].compressed;
+        const cur_words_shown = this.compressedContentElement.innerText.length / this.litSize + 1;
+        if (lastElement){
+            this.compressedContentElement.innerText += this.states[this.states.length - 1].compressed;
         }
-        this.compressedContentElement.innerText = compressedSoFar;
+        else if ( this.currentStateIndex+1  > cur_words_shown){ // went forward a step
+            this.compressedContentElement.innerText += this.states[this.currentStateIndex - 1].compressed;
+        } else if (this.currentStateIndex + 1  < cur_words_shown) { // went backward a step
+            this.compressedContentElement.innerText = this.compressedContentElement.innerText.substring(0, this.compressedContentElement.innerText.length - this.litSize  -1)
+        }
+
+        // old version which loops through all states each time
+        // let compressedSoFar = "";
+        // // this is the number of states we go through we we are on the last element print all states.
+        // const numOfStates = lastElement ? this.currentStateIndex + 1 : this.currentStateIndex; 
+        // for (let i = 0; i < numOfStates; i++) {
+        //     compressedSoFar += this.states[i].compressed;
+        // }
+
+        // this.compressedContentElement.innerText = compressedSoFar;
     }
 
     // transition to the next compressed word or to the end of current one
