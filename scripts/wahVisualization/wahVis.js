@@ -81,7 +81,12 @@ class wahVis {
         const compressedWidth = ctx.measureText(state.compressed).width;
         const bitWidth = compressedWidth / state.compressed.length;
         const gap = 5;
-    
+        
+        
+
+        const runsTextSize = this.litSize === 7 ? 20 : this.litSize === 15 ? 15 : 11;
+        
+
         if (state.runs > 0) {
             // Underline first bit
             ctx.strokeStyle = 'red';
@@ -90,27 +95,29 @@ class wahVis {
             ctx.moveTo(gap, 240);
             ctx.lineTo(bitWidth - gap, 240);
             ctx.stroke();
-            ctx.font = `20px Arial`;
-            ctx.fillStyle = 'black';
+            ctx.font = `${runsTextSize}px Arial`;
+            ctx.fillStyle = 'red';
             ctx.fillText('run', gap, 270);
     
             // Underline second bit
             ctx.strokeStyle = 'blue';
+            ctx.fillStyle = 'blue';
             ctx.lineWidth = 4;
             ctx.beginPath();
             ctx.moveTo(bitWidth + gap, 240);
             ctx.lineTo(2 * bitWidth - gap, 240);
             ctx.stroke();
-            ctx.fillText(`of ${state.runType}'s`, gap + bitWidth, 270);
+            ctx.fillText(`of ${state.runType}'s`, 2 + gap + bitWidth, 270);
     
             // Underline rest of the string
             ctx.strokeStyle = 'black';
+            ctx.fillStyle = 'black';
             ctx.lineWidth = 4;
             ctx.beginPath();
             ctx.moveTo(bitWidth * 2 + gap, 240);
             ctx.lineTo(compressedWidth - gap, 240);
             ctx.stroke();
-            ctx.fillText(`${curr_run} times`, 2 * bitWidth + gap * 2, 270);
+            ctx.fillText(`${curr_run} ${curr_run > 1 ? 'times' : 'time'}`, 15 + 2 * bitWidth + gap * 2, 270);
     
         } else {
             // Literal
