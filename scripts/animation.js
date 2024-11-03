@@ -8,21 +8,21 @@ const savedInputData = localStorage.getItem('inputData');
 
 
 // Check if the settings and input data are valid
-if (!savedSettings || savedSettings.compressionMethod !== 'wah' || savedSettings.wordSize !== 8) {
-    document.getElementById('VisTitle').innerHTML = 'Oops, currently only WAH 8 visualization is supported';
+if (!savedSettings || savedSettings.compressionMethod !== 'wah' || savedSettings.wordSize == 64) {
+    document.getElementById('VisTitle').innerHTML = 'Please Choose Wah with a word size of 8 - 32.';
 } else if (!savedInputData || savedInputData.length < 8) {
     document.getElementById('VisTitle').innerHTML = 'Please go to live view and input your uncompressed bits';
 } else {
     // Now you can use the wahVis class in this file
 
-    const states = wahCompressWithStates(savedInputData, 8);
-    //console.log(states)
+    const states = wahCompressWithStates(savedInputData, savedSettings.wordSize);
+    console.log(states)
 
 
     const canvasId = 'animationCanvas';
     const compressedContentId = 'compressedContent';
 
-    const litSize = 7;
+    const litSize = savedSettings.wordSize - 1;
 
    // old test const uncompressed = '010100100000000000000000000011111111111111111111111111111110101';
 
