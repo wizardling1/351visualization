@@ -1,11 +1,11 @@
 import wahVis from '../scripts/wahVisualization/wahVis.js';
+import bbcVis from '../scripts/bbcVisualization/bbcVis.js';
 import { wahCompressWithStates } from '../scripts/compression/animation_states/wahWithStates.js';
+import { bbcCompress } from './compression/raw_compression/bbc.js';
 
 // get settings and input from local
 const savedSettings = JSON.parse(localStorage.getItem('compressionSettings'));
 const savedInputData = localStorage.getItem('inputData');
-
-
 
 // Check if the settings and input data are valid
 if (!savedSettings || savedSettings.compressionMethod !== 'wah' || savedSettings.wordSize !== 8) {
@@ -15,9 +15,8 @@ if (!savedSettings || savedSettings.compressionMethod !== 'wah' || savedSettings
 } else {
     // Now you can use the wahVis class in this file
 
-    const states = wahCompressWithStates(savedInputData, 8);
+    //const states = wahCompressWithStates(savedInputData, 8);
     //console.log(states)
-
 
     const canvasId = 'animationCanvas';
     const compressedContentId = 'compressedContent';
@@ -26,19 +25,20 @@ if (!savedSettings || savedSettings.compressionMethod !== 'wah' || savedSettings
 
    // old test const uncompressed = '010100100000000000000000000011111111111111111111111111111110101';
 
-    const wahVisualizer = new wahVis(canvasId, compressedContentId, states, litSize, savedInputData);
+    // const wahVisualizer = new wahVis(canvasId, compressedContentId, states, litSize, savedInputData);
+    const bbcVisualizer = new bbcVis('animationCanvas', 'compressedContent', savedInputData || "000000000000000000010000");
 
     // Add event listeners for buttons
     document.getElementById('next-step').addEventListener('click', function() {
-        wahVisualizer.transitionNext();
+        bbcVisualizer.transitionNext();
     });
     document.getElementById('micro-step').addEventListener('click', function() {
-        wahVisualizer.transitionMicro();
+        bbcVisualizer.transitionMicro();
     });
     document.getElementById('back-step').addEventListener('click', function() {
-        wahVisualizer.stepBack();
+        bbcVisualizer.stepBack();
     });
     document.getElementById('reset-btn').addEventListener('click', function() {
-        wahVisualizer.reset();
+        bbcVisualizer.reset();
     });
 }

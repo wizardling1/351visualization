@@ -236,7 +236,7 @@ const outputField = document.getElementById('compressed-output');
 // Load saved input data from localStorage
 const savedInputData = localStorage.getItem('inputData');
 if (savedInputData !== null) {
-    inputField.value = savedInputData;
+    inputField.value = savedInputData.replace(/[^01]/g, ''); // Clean input data for compression
 }
 
 const updateOutputField = () => {
@@ -251,7 +251,10 @@ const updateOutputField = () => {
         outputField.value = valCompress(inputField.value, wordSize, numSegments).str;
     }
     else if (compressionMethod == 'bbc') {
-        outputField.value = bbcCompress(inputField.value);
+        // unpack output and states from bbc compression
+        let [output, states] = bbcCompress(inputField.value, true);
+        console.log(output, states);
+        outputField.value = output.match(/.{1,8}/g)?.join(' ') || output; // Regex optional
     }
 }
 
@@ -261,6 +264,7 @@ compressionSettingsManager.init();
 
 // Initial update of the output field
 updateOutputField();
+inputField.value = inputField.value.match(/.{1,8}/g)?.join(' ') || inputField.value;
 
 inputField.addEventListener('input', event => {
     // ensure only 1 and 0 are entered
@@ -268,4 +272,7 @@ inputField.addEventListener('input', event => {
     // Save input data to localStorage
     localStorage.setItem('inputData', event.target.value);
     updateOutputField();
+
+    // Format the inputfield to have spaces between bytes
+    inputField.value = inputField.value.match(/.{1,8}/g)?.join(' ') || inputField.value;
 });
