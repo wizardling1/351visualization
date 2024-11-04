@@ -171,27 +171,46 @@ class wahVis {
         ctx.fillText(`word : ${this.currentStateIndex + 1}`, canvasWidth - 100, canvasHeight - 10);
     }
     
+    // //old version which loops through all states each time
+    // updateCompressedSoFar(lastElement = false) {
+    //     let compressedSoFar = "";
+    //     // this is the number of states we go through we we are on the last element print all states.
+    //     const numOfStates = lastElement ? this.currentStateIndex + 1 : this.currentStateIndex; 
+    //     for (let i = 0; i < numOfStates; i++) {
+    //         compressedSoFar += this.states[i].compressed;
+    //     }
+
+    //     this.compressedContentElement.innerText = compressedSoFar;
+    // }
 
     updateCompressedSoFar(lastElement = false) {
-        const cur_words_shown = Math.ceil(this.compressedContentElement.innerText.length / this.litSize);
-
-        if (lastElement && cur_words_shown !== this.currentStateIndex + 1) {
-            this.compressedContentElement.innerText += this.states[this.states.length - 1].compressed;
-        } else if (this.currentStateIndex + 1 > cur_words_shown) { // went forward a step
-            this.compressedContentElement.innerText += this.states[this.currentStateIndex].compressed;
-        } else if (this.currentStateIndex + 1 < cur_words_shown) { // went backward a step
-            this.compressedContentElement.innerText = this.compressedContentElement.innerText.substring(0, this.compressedContentElement.innerText.length - this.litSize);
+        // Initialize compressedSoFar if not already done
+        if (this.compressedSoFar === undefined) {
+            this.compressedSoFar = "";
+            this.prevStateIndex = 0;
         }
-
-        // old version which loops through all states each time
-        // let compressedSoFar = "";
-        // // this is the number of states we go through we we are on the last element print all states.
-        // const numOfStates = lastElement ? this.currentStateIndex + 1 : this.currentStateIndex; 
-        // for (let i = 0; i < numOfStates; i++) {
-        //     compressedSoFar += this.states[i].compressed;
-        // }
-
-        // this.compressedContentElement.innerText = compressedSoFar;
+    
+        // Determine the number of states to consider
+        const numOfStates = lastElement ? this.currentStateIndex + 1 : this.currentStateIndex;
+    
+        if (numOfStates > this.prevStateIndex) {
+            // Moving forward, append new compressed code
+            for (let i = this.prevStateIndex; i < numOfStates; i++) {
+                this.compressedSoFar += this.states[i].compressed;
+            }
+        } else if (numOfStates < this.prevStateIndex) {
+            // Moving backward, remove compressed code
+            for (let i = numOfStates; i < this.prevStateIndex; i++) {
+                const lengthToRemove = this.states[i].compressed.length;
+                this.compressedSoFar = this.compressedSoFar.slice(0, -lengthToRemove);
+            }
+        }
+    
+        // Update previous state index
+        this.prevStateIndex = numOfStates;
+    
+        // Update the compressed content display
+        this.compressedContentElement.innerText = this.compressedSoFar;
     }
 
     // transition to the next compressed word or to the end of current one
