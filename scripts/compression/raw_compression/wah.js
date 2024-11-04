@@ -63,7 +63,8 @@ export const wahCompress = (string, wordSize) => {
     for (let i = 0; i < string.length; i += chunkSize) {
         let chunkStr = string.slice(i, i + chunkSize);
         let chunk = parse(chunkStr);
-        if (i + chunkSize >= string.length) {
+        // make >= to just be > instead
+        if (i + chunkSize > string.length) {
             lastchunkflg = 1
         }
 

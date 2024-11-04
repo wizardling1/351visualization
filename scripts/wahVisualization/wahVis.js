@@ -42,11 +42,21 @@ class wahVis {
         let compressedFontSize = Math.min(130, canvasWidth / state.compressed.length * 1.4);
     
         const uncompressedDigitWidth = ctx.measureText("0").width;
-        const start_point = 5 - (transition * this.litSize * uncompressedDigitWidth);
+        const start_point = - (transition * this.litSize * uncompressedDigitWidth);
+
         // Calculate the number of digits that can fit in the canvas width
         const canFit = Math.ceil(canvasWidth / uncompressedDigitWidth);
         let current_uncompressed;
     
+        
+        
+        // get the highlight in the middle
+        const highlightStartDigit = Math.floor(Math.floor(canvasWidth/uncompressedDigitWidth)/2) - Math.floor(this.litSize / 2)
+        let highlightWidth = this.litSize * uncompressedDigitWidth;
+        let highlightStart = highlightStartDigit  * uncompressedDigitWidth;
+        let uncompressedStartIndex = state.startIndex;
+        uncompressedStartIndex += curr_run === 0 ? 0 : (curr_run - 1) * this.litSize;
+        // first if we dont have enough digits before start then fill with spaces
         if (state.runs > 1 && curr_run == state.runs) {    // here we simplify the runs displayed
     
             // the simplifyString function turns a bunch of runs into 11..11
@@ -54,17 +64,40 @@ class wahVis {
             const new_start = state.startIndex + this.litSize * state.runs;
             current_uncompressed = simplifiedString + this.uncompressed.substring(new_start, new_start + canFit);
         } else {
-            let curr_offset = curr_run === 0 ? 0 : (curr_run - 1) * this.litSize;
-            current_uncompressed = this.uncompressed.substring(state.startIndex + curr_offset, state.startIndex + canFit + this.litSize + curr_offset);
+            
+            current_uncompressed = this.uncompressed.substring(uncompressedStartIndex, uncompressedStartIndex + canFit + this.litSize);
         }
-    
-        let highlightWidth = this.litSize * uncompressedDigitWidth;
+
+        // get the functional start index
+        const startIndex = (state.runs > 1 && curr_run == state.runs) ? state.startIndex : uncompressedStartIndex;
+
+        // generate fill string to fill up space upto highlight
+        
+        let fillString;
+        // we dont have enough in uncompressed before
+        if (startIndex < highlightStartDigit){
+            const spaces_needed = highlightStartDigit - startIndex;
+            fillString = " ".repeat(spaces_needed) + this.uncompressed.substring(0, startIndex)
+        } else { // fill with chars before the start index
+            fillString = this.uncompressed.substring(startIndex - highlightStartDigit, startIndex)
+        }
+
+        current_uncompressed = fillString + current_uncompressed
+
+
+
         ctx.fillText(current_uncompressed, start_point, 60);
     
         // Highlight around current step
         ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
-        ctx.fillRect(5, 30, highlightWidth, 40);
+        ctx.fillRect(highlightStart, 30, highlightWidth, 40);
     
+
+
+
+
+
+
         // Subtext
         ctx.font = `22px Arial`;
         ctx.fillStyle = 'black';
@@ -81,7 +114,12 @@ class wahVis {
         const compressedWidth = ctx.measureText(state.compressed).width;
         const bitWidth = compressedWidth / state.compressed.length;
         const gap = 5;
-    
+        
+        
+
+        const runsTextSize = this.litSize === 7 ? 20 : this.litSize === 15 ? 15 : 11;
+        
+
         if (state.runs > 0) {
             // Underline first bit
             ctx.strokeStyle = 'red';
@@ -90,27 +128,29 @@ class wahVis {
             ctx.moveTo(gap, 240);
             ctx.lineTo(bitWidth - gap, 240);
             ctx.stroke();
-            ctx.font = `20px Arial`;
-            ctx.fillStyle = 'black';
+            ctx.font = `${runsTextSize}px Arial`;
+            ctx.fillStyle = 'red';
             ctx.fillText('run', gap, 270);
     
             // Underline second bit
             ctx.strokeStyle = 'blue';
+            ctx.fillStyle = 'blue';
             ctx.lineWidth = 4;
             ctx.beginPath();
             ctx.moveTo(bitWidth + gap, 240);
             ctx.lineTo(2 * bitWidth - gap, 240);
             ctx.stroke();
-            ctx.fillText(`of ${state.runType}'s`, gap + bitWidth, 270);
+            ctx.fillText(`of ${state.runType}'s`, 2 + gap + bitWidth, 270);
     
             // Underline rest of the string
             ctx.strokeStyle = 'black';
+            ctx.fillStyle = 'black';
             ctx.lineWidth = 4;
             ctx.beginPath();
             ctx.moveTo(bitWidth * 2 + gap, 240);
             ctx.lineTo(compressedWidth - gap, 240);
             ctx.stroke();
-            ctx.fillText(`${curr_run} times`, 2 * bitWidth + gap * 2, 270);
+            ctx.fillText(`${curr_run} ${curr_run > 1 ? 'times' : 'time'}`, 15 + 2 * bitWidth + gap * 2, 270);
     
         } else {
             // Literal
@@ -131,15 +171,46 @@ class wahVis {
         ctx.fillText(`word : ${this.currentStateIndex + 1}`, canvasWidth - 100, canvasHeight - 10);
     }
     
+    // //old version which loops through all states each time
+    // updateCompressedSoFar(lastElement = false) {
+    //     let compressedSoFar = "";
+    //     // this is the number of states we go through we we are on the last element print all states.
+    //     const numOfStates = lastElement ? this.currentStateIndex + 1 : this.currentStateIndex; 
+    //     for (let i = 0; i < numOfStates; i++) {
+    //         compressedSoFar += this.states[i].compressed;
+    //     }
+
+    //     this.compressedContentElement.innerText = compressedSoFar;
+    // }
 
     updateCompressedSoFar(lastElement = false) {
-        let compressedSoFar = "";
-        // this is the number of states we go through we we are on the last element print all states.
-        const numOfStates = lastElement ? this.currentStateIndex + 1 : this.currentStateIndex; 
-        for (let i = 0; i < numOfStates; i++) {
-            compressedSoFar += this.states[i].compressed;
+        // Initialize compressedSoFar if not already done
+        if (this.compressedSoFar === undefined) {
+            this.compressedSoFar = "";
+            this.prevStateIndex = 0;
         }
-        this.compressedContentElement.innerText = compressedSoFar;
+    
+        // Determine the number of states to consider
+        const numOfStates = lastElement ? this.currentStateIndex + 1 : this.currentStateIndex;
+    
+        if (numOfStates > this.prevStateIndex) {
+            // Moving forward, append new compressed code
+            for (let i = this.prevStateIndex; i < numOfStates; i++) {
+                this.compressedSoFar += this.states[i].compressed;
+            }
+        } else if (numOfStates < this.prevStateIndex) {
+            // Moving backward, remove compressed code
+            for (let i = numOfStates; i < this.prevStateIndex; i++) {
+                const lengthToRemove = this.states[i].compressed.length;
+                this.compressedSoFar = this.compressedSoFar.slice(0, -lengthToRemove);
+            }
+        }
+    
+        // Update previous state index
+        this.prevStateIndex = numOfStates;
+    
+        // Update the compressed content display
+        this.compressedContentElement.innerText = this.compressedSoFar;
     }
 
     // transition to the next compressed word or to the end of current one
@@ -149,8 +220,6 @@ class wahVis {
         const fromRun = this.currRunShown;
 
         if (this.currentStateIndex >= this.states.length - 1) {
-            // document.getElementById('nextButton').disabled = true;
-            // document.getElementById('microButton').disabled = true;
             this.updateCompressedSoFar(true);
             return;
         }
@@ -170,17 +239,24 @@ class wahVis {
         const fromState = this.states[this.currentStateIndex];
         const fromRun = this.currRunShown;
 
+        // if we are at the last state already
         if (this.currentStateIndex >= this.states.length - 1 && this.currRunShown >= fromState.runs) {
-            // document.getElementById('nextButton').disabled = true;
-            // document.getElementById('microButton').disabled = true;
             this.updateCompressedSoFar(true);
             return;
         }
 
+        //if we are comming from a literal or end of run
         if (fromState.runs == 0 || this.currRunShown == fromState.runs) {
             this.currentStateIndex++;
-            this.currRunShown = 0;
-        } else {
+            if (this.states[this.currentStateIndex].runs == 0){
+                //current state is a literal
+                this.currRunShown = 0;
+            } else {
+                //current state is a run
+                this.currRunShown = 1;
+            }
+            
+        } else { // otherwise just increment the run shown
             this.currRunShown++;
         }
 
