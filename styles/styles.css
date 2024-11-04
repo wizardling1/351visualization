@@ -99,18 +99,6 @@ input[type="number"] {
     margin-right: 0;
 }
 
-/* Diff Checker */
-.diff-container {
-    white-space: pre-wrap;
-    font-family: monospace;
-}
-.added {
-    background-color: #d4fcbc;
-}
-.removed {
-    background-color: #fbb6c2;
-}
-
 #animationCanvas {
     border: 2px solid rgb(88, 88, 88);
     width: 100%;
