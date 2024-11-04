@@ -173,14 +173,14 @@ class wahVis {
     
 
     updateCompressedSoFar(lastElement = false) {
-        const cur_words_shown = this.compressedContentElement.innerText.length / this.litSize + 1;
-        if (lastElement){
+        const cur_words_shown = Math.ceil(this.compressedContentElement.innerText.length / this.litSize);
+
+        if (lastElement && cur_words_shown !== this.currentStateIndex + 1) {
             this.compressedContentElement.innerText += this.states[this.states.length - 1].compressed;
-        }
-        else if ( this.currentStateIndex+1  > cur_words_shown){ // went forward a step
-            this.compressedContentElement.innerText += this.states[this.currentStateIndex - 1].compressed;
-        } else if (this.currentStateIndex + 1  < cur_words_shown) { // went backward a step
-            this.compressedContentElement.innerText = this.compressedContentElement.innerText.substring(0, this.compressedContentElement.innerText.length - this.litSize  -1)
+        } else if (this.currentStateIndex + 1 > cur_words_shown) { // went forward a step
+            this.compressedContentElement.innerText += this.states[this.currentStateIndex].compressed;
+        } else if (this.currentStateIndex + 1 < cur_words_shown) { // went backward a step
+            this.compressedContentElement.innerText = this.compressedContentElement.innerText.substring(0, this.compressedContentElement.innerText.length - this.litSize);
         }
 
         // old version which loops through all states each time
