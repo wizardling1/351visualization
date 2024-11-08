@@ -1,3 +1,5 @@
+import { wahCompress, valCompress, bbcCompress } from './compression/raw_compression/compressions.js';
+
 const compressionSettings = {
     compressionMethod: 'wah',
     wordSize: 8,
@@ -227,7 +229,6 @@ class CompressionSettingsManager {
     }
 }
 
-import { wahCompress, valCompress, bbcCompress } from './compression/raw_compression/compressions.js';
 let compressionSettingsManager = new CompressionSettingsManager();
 
 const inputField = document.getElementById('input-data');

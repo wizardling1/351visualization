@@ -1,5 +1,5 @@
 import wahVis from '../scripts/wahVisualization/wahVis.js';
-import { wahCompressWithStates } from '../scripts/compression/animation_states/wahWithStates.js';
+import { wahCompress } from '../scripts/compression/raw_compression/wah.js';
 
 // get settings and input from local
 const savedSettings = JSON.parse(localStorage.getItem('compressionSettings'));
@@ -15,7 +15,7 @@ if (!savedSettings || savedSettings.compressionMethod !== 'wah' || savedSettings
 } else {
     // Now you can use the wahVis class in this file
 
-    const states = wahCompressWithStates(savedInputData, savedSettings.wordSize);
+    const states = wahCompress(savedInputData, savedSettings.wordSize, true);
     //console.log(states)
 
 

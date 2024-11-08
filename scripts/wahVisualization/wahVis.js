@@ -1,4 +1,4 @@
-import { simplifyString, decimalToBinary } from './helperFunctions.js';
+import { simplifyString, decimalToBinary, drawArrow } from './helperFunctions.js';
 
 class wahVis {
     constructor(canvasId, compressedContentId, states, litSize, uncompressed) {
@@ -39,7 +39,7 @@ class wahVis {
         ctx.font = `30px monospace`;
         ctx.fillStyle = 'black';
     
-        let compressedFontSize = Math.min(130, canvasWidth / state.compressed.length * 1.4);
+        
     
         const uncompressedDigitWidth = ctx.measureText("0").width;
         const start_point = - (transition * this.litSize * uncompressedDigitWidth);
@@ -93,95 +93,137 @@ class wahVis {
         ctx.fillRect(highlightStart, 30, highlightWidth, 40);
     
 
-
-
-
-
-
         // Subtext
         ctx.font = `22px Arial`;
         ctx.fillStyle = 'black';
         let top_text = state.runs === 0 ? 'Literal' : `${curr_run} runs of ${state.runType}'s`;
         ctx.fillText(top_text, 20, 100);
     
-        // Compressed
-        let compressed = state.runs === 0 ? state.compressed : `1${state.runType}${decimalToBinary(curr_run, this.litSize - 1)}`;
-    
-        ctx.font = `bold ${compressedFontSize}px monospace`;
-        ctx.fillStyle = 'black';
-        ctx.fillText(compressed, 0, 230);
-    
-        const compressedWidth = ctx.measureText(state.compressed).width;
-        const bitWidth = compressedWidth / state.compressed.length;
-        const gap = 5;
-        
+        // Compressed Display
+
+        // consts for positioning stuff
+
+        // Get font size for the compresssed text
+        let compressedFontSize;
+        let compresedH;
+        switch (this.litSize) {
+            case 7:
+            compressedFontSize = 90;
+            compresedH = 200;
+            break;
+            case 15:
+            compressedFontSize = 60;
+            compresedH = 190;
+            break;
+            case 31:
+            compressedFontSize = 30;
+            compresedH = 180;
+            break;
+            default:
+            compressedFontSize = 20; // Default value if litSize is not 7, 15, or 31
+        }
+
+           //vertical position of main compressed text
+        const gap = 3;                      //gap between underlines of difference sections
+        const runsTextSize = 25;
+
+        const underlineH = compresedH + 10
+        const textH = 270
+
         
 
-        const runsTextSize = this.litSize === 7 ? 20 : this.litSize === 15 ? 15 : 11;
+        const runColor = "red";
+        const runTypeColor = "blue";
+        const litColor = "black"
+        
+
+        //generate the compressed bit for micro steps
+        let compressed = state.runs === 0 ? state.compressed : `1${state.runType}${decimalToBinary(curr_run, this.litSize - 1)}`;
+        
+    
+        //main compressed bit area
+        ctx.font = `bold ${compressedFontSize}px monospace`;
+        ctx.fillStyle = 'black';
+        ctx.fillText(compressed, 0, compresedH);
+    
+        // these calculations need to happen after the font size is set.
+        const compressedWidth = ctx.measureText(compressed).width;
+        const bitWidth = compressedWidth / compressed.length;
+        
         
 
         if (state.runs > 0) {
             // Underline first bit
-            ctx.strokeStyle = 'red';
+            ctx.strokeStyle = runColor;
             ctx.lineWidth = 4;
             ctx.beginPath();
-            ctx.moveTo(gap, 240);
-            ctx.lineTo(bitWidth - gap, 240);
+            ctx.moveTo(gap, underlineH);
+            ctx.lineTo(bitWidth - gap, underlineH);
             ctx.stroke();
-            ctx.font = `${runsTextSize}px Arial`;
-            ctx.fillStyle = 'red';
-            ctx.fillText('run', gap, 270);
+            ctx.font = `bold ${runsTextSize}px Arial`;
+            ctx.fillStyle = runColor;
+            
+            const firstBitText = "run";
+            ctx.fillText(firstBitText, gap, textH);
+
+            //  draw arrow
+            const middleFirstText = ctx.measureText(firstBitText).width / 2;
+            
+
+            drawArrow(ctx, gap + middleFirstText, textH-15, bitWidth/2, underlineH+5, 10);
     
             // Underline second bit
-            ctx.strokeStyle = 'blue';
-            ctx.fillStyle = 'blue';
+            ctx.strokeStyle = runTypeColor;
+            ctx.fillStyle = runTypeColor;
             ctx.lineWidth = 4;
             ctx.beginPath();
-            ctx.moveTo(bitWidth + gap, 240);
-            ctx.lineTo(2 * bitWidth - gap, 240);
+            ctx.moveTo(bitWidth + gap, underlineH);
+            ctx.lineTo(2 * bitWidth - gap, underlineH);
             ctx.stroke();
-            ctx.fillText(`of ${state.runType}'s`, 2 + gap + bitWidth, 270);
+
+            const secondBitText = `of ${state.runType}'s`;
+
+            ctx.fillText(secondBitText, 60, textH);
+
+            const middleSecondText = ctx.measureText(secondBitText).width / 2;
+
+            drawArrow(ctx, 60 + middleSecondText, textH - 20, bitWidth +bitWidth/2 - gap, underlineH+5, 10);
+
     
             // Underline rest of the string
-            ctx.strokeStyle = 'black';
-            ctx.fillStyle = 'black';
+            ctx.strokeStyle = litColor;
+            ctx.fillStyle = litColor;
             ctx.lineWidth = 4;
             ctx.beginPath();
-            ctx.moveTo(bitWidth * 2 + gap, 240);
-            ctx.lineTo(compressedWidth - gap, 240);
+            ctx.moveTo(bitWidth * 2 + gap, underlineH);
+            ctx.lineTo(compressedWidth - gap, underlineH);
             ctx.stroke();
-            ctx.fillText(`${curr_run} ${curr_run > 1 ? 'times' : 'time'}`, 15 + 2 * bitWidth + gap * 2, 270);
+
+            const restText = `${curr_run} ${curr_run > 1 ? 'times' : 'time'}`;
+            ctx.fillText(restText, 260, textH);
+
+            const middleRestText = ctx.measureText(restText).width / 2;
+            drawArrow(ctx, 260 + middleRestText, textH-20, compressedWidth/2, underlineH+5, 10);
     
         } else {
             // Literal
-            ctx.strokeStyle = 'black';
+            ctx.strokeStyle = litColor;
             ctx.lineWidth = 4;
             ctx.beginPath();
-            ctx.moveTo(bitWidth + gap, 240);
-            ctx.lineTo(compressedWidth - gap, 240);
+            ctx.moveTo(bitWidth + gap, underlineH);
+            ctx.lineTo(compressedWidth - gap, underlineH);
             ctx.stroke();
-            ctx.font = `20px Arial`;
-            ctx.fillStyle = 'black';
-            ctx.fillText(`literal`, bitWidth + gap * 2, 270);
+            ctx.font = `bold ${runsTextSize}px Arial`;
+            ctx.fillStyle = litColor;
+            ctx.fillText(`literal`, 150, underlineH + 30);
         }
     
-        // Add small text in the bottom right
+        // Add small text in the bottom right that says current word we are on
         ctx.font = `bold 15px Arial`;
         ctx.fillStyle = 'black';
         ctx.fillText(`word : ${this.currentStateIndex + 1}`, canvasWidth - 100, canvasHeight - 10);
     }
     
-    // //old version which loops through all states each time
-    // updateCompressedSoFar(lastElement = false) {
-    //     let compressedSoFar = "";
-    //     // this is the number of states we go through we we are on the last element print all states.
-    //     const numOfStates = lastElement ? this.currentStateIndex + 1 : this.currentStateIndex; 
-    //     for (let i = 0; i < numOfStates; i++) {
-    //         compressedSoFar += this.states[i].compressed;
-    //     }
-
-    //     this.compressedContentElement.innerText = compressedSoFar;
-    // }
 
     updateCompressedSoFar(lastElement = false) {
         // Initialize compressedSoFar if not already done
