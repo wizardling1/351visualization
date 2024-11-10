@@ -3,6 +3,7 @@ import { bitsToString, getTypedArray, getParse, getCast, wordAsString } from "./
 export const getValSegmentLength = (wordSize, segmentCount) => {
     const scanLength = (wordSize - segmentCount) / segmentCount;
     console.assert(scanLength == (scanLength | 0), "Word size does not divide cleanly by segment count!");
+    console.assert(scanLength > 1, "Segment size is too small!");
 
     return scanLength;
 }

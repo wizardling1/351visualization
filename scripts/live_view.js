@@ -2,10 +2,10 @@ import { wahCompress, valCompress, bbcCompress } from './compression/raw_compres
 import { getStoredCompressionSettings } from './storage.js';
 
 const wordSizeSegments = {
-    '8': ['1', '2', '4'],
-    '16': ['1', '2', '4', '8'],
-    '32': ['1', '2', '4', '8', '16'],
-    '64': ['1', '2', '4', '8', '16', '32'],
+    '8': ['1', '2'],
+    '16': ['1', '2', '4'],
+    '32': ['1', '2', '4', '8'],
+    '64': ['1', '2', '4', '8', '16'],
 };
 
 class CompressionSettingsManager {
