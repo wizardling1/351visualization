@@ -26,3 +26,29 @@ export const decimalToBinary = (decimal, size) => {
 
     return binaryString;
 };
+
+
+export const drawArrow = (ctx, fromX, fromY, toX, toY, headLength = 10) => {
+    // Calculate the angle of the line
+    const angle = Math.atan2(toY - fromY, toX - fromX);
+    
+    // Draw the main line
+    ctx.beginPath();
+    ctx.moveTo(fromX, fromY);
+    ctx.lineTo(toX, toY);
+    ctx.stroke();
+    
+    // Draw the arrow head
+    ctx.beginPath();
+    ctx.moveTo(toX, toY);
+    ctx.lineTo(
+        toX - headLength * Math.cos(angle - Math.PI/6),
+        toY - headLength * Math.sin(angle - Math.PI/6)
+    );
+    ctx.moveTo(toX, toY);
+    ctx.lineTo(
+        toX - headLength * Math.cos(angle + Math.PI/6),
+        toY - headLength * Math.sin(angle + Math.PI/6)
+    );
+    ctx.stroke();
+}
