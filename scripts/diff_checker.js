@@ -1,3 +1,10 @@
+// TODO:
+// Make the output container a scrollable element so that the page isn't super long.
+// Add line numbers to the scrollable element
+// Jump to the first line that is different
+// Show indices of the characters in detailed comparison.
+// Automatically show the detailed diff of the first diff
+
 document.getElementById('compare-btn').addEventListener('click', function() {
     // remove whitespace
     var text1 = document.getElementById('text1').value.replace(/\s+/g, ''); 
