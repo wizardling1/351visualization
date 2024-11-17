@@ -99,18 +99,6 @@ input[type="number"] {
     margin-right: 0;
 }
 
-/* Diff Checker */
-.diff-container {
-    white-space: pre-wrap;
-    font-family: monospace;
-}
-.added {
-    background-color: #d4fcbc;
-}
-.removed {
-    background-color: #fbb6c2;
-}
-
 #animationCanvas {
     border: 2px solid rgb(88, 88, 88);
     width: 100%;
@@ -145,4 +133,91 @@ input[type="number"] {
     margin-bottom: 1rem;
     padding: 1rem;
     box-sizing: border-box;
+}
+
+/* Compressed Content Container */
+#compressedContent {
+    width: 100%;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    white-space: nowrap;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 10px;
+    height: 50px;
+    scrollbar-width: auto;  /* For Firefox */
+    scrollbar-color: #888 #f1f1f1;  /* For Firefox */
+}
+
+/* Webkit scrollbar styles (Chrome, Safari, Edge) */
+#compressedContent::-webkit-scrollbar {
+    height: 12px;
+}
+
+#compressedContent::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 6px;
+}
+
+#compressedContent::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 6px;
+}
+
+#compressedContent::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.lines-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.line {
+    display: flex;
+    margin-bottom: 5px;
+}
+
+.line span {
+    width: 50%;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+
+.chunk1, .chunk2 {
+    width: 50%;
+}
+
+.diff {
+    background-color: #fdd; /* Light red background for lines with differences */
+}
+
+.detail-container {
+    margin-top: 20px;
+    padding: 10px;
+    border-top: 1px solid #ccc;
+}
+
+.detail-line {
+    display: flex;
+    flex-wrap: wrap;
+    font-family: monospace;
+    white-space: pre-wrap;
+    margin-bottom: 5px;
+}
+
+.detail-line span {
+    display: inline-block;
+}
+
+.highlight {
+    background-color: yellow;
+}
+
+.diff-input {
+    resize: none;
+    white-space: pre-wrap; 
+    word-wrap: break-word; 
 }
