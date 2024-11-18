@@ -104,7 +104,7 @@ export const bbcCompress = (index, generate_states = false) => {
 
                     // reset saved dirty byte and run count
                     savedDirtyByte = null;
-                    saveRuns = numRuns;        
+                    saveRuns = numRuns;              
                     numRuns = 0;
                 }
                 numRuns++;
@@ -147,6 +147,7 @@ export const bbcCompress = (index, generate_states = false) => {
                 encodedChunk = encodeNormalChunk(numRuns, literals);
                 chunks.push(encodedChunk);
                 special = false;
+                saveRuns = numRuns;
                 numRuns = 1;
                 literals = [];
                 inRuns = true;
@@ -157,7 +158,7 @@ export const bbcCompress = (index, generate_states = false) => {
                     encodedChunk = encodeNormalChunk(numRuns, literals);
                     chunks.push(encodedChunk);
                     special = false;
-                    saveRuns = numRuns;
+                    saveRuns = numRuns;                   
                     numRuns = 0;
                     literals = [];
                     inRuns = true;
@@ -226,6 +227,6 @@ export const bbcCompress = (index, generate_states = false) => {
         strs = strs.concat(uint8ArrayToStrings(c));
     }
     if (generate_states) 
-        return [strs.join(''), states];
+        return states;
     return strs.join('');
 }
