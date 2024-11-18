@@ -1,16 +1,16 @@
 import wahVis from '../scripts/wahVisualization/wahVis.js';
+import bbcVis from './bbcVisualization/bbcVis.js';
 import { wahCompress } from '../scripts/compression/raw_compression/wah.js';
 import { valCompress, getValSegmentLength } from './compression/raw_compression/val.js';
+import { bbcCompress } from './compression/raw_compression/bbc.js';
 import { getStoredCompressionSettings } from './storage.js';
 
 // get settings and input from local
 const savedSettings = getStoredCompressionSettings();
 const savedInputData = localStorage.getItem('inputData');
 
-
-
 // Check if the settings and input data are valid
-if ((savedSettings.compressionMethod !== 'wah' && savedSettings.compressionMethod !== 'val') || savedSettings.wordSize == 64) {
+if ((savedSettings.compressionMethod in ["wah", "val", "bbc"]) || savedSettings.wordSize == 64) {
     document.getElementById('VisTitle').innerHTML = 'Please choose either WAH or VAL with a word size of 8 - 32.';
 } else if (!savedInputData || savedInputData.length == 0) {
     document.getElementById('VisTitle').innerHTML = 'Please go to live view and input your uncompressed bits';
@@ -26,9 +26,12 @@ if ((savedSettings.compressionMethod !== 'wah' && savedSettings.compressionMetho
         case 'val':
             states = valCompress(savedInputData, savedSettings.wordSize, savedSettings.numSegments, true)
             break;
+        case 'bbc':
+            states = bbcCompress(savedInputData, true)
+            break;
     }
 
-    //console.log(states)
+    console.log(states)
 
     const canvasId = 'animationCanvas';
     const compressedContentId = 'compressedContent';
@@ -43,9 +46,13 @@ if ((savedSettings.compressionMethod !== 'wah' && savedSettings.compressionMetho
     }
 
    // old test const uncompressed = '010100100000000000000000000011111111111111111111111111111110101';
-
-    const wahVisualizer = new wahVis(canvasId, compressedContentId, states, wordSize, litSize, numSegments, savedInputData);
-
+    let visualizer;
+    if (savedSettings.compressionMethod === "bbc"){
+        visualizer = new bbcVis(canvasId, compressedContentId, savedInputData);
+    }
+    else{
+        visualizer = new wahVis(canvasId, compressedContentId, states, wordSize, litSize, numSegments, savedInputData);
+    }
     // Function to scroll to the end of the compressed content
     function scrollToEnd() {
         const compressedContent = document.getElementById('compressedContent');
@@ -65,19 +72,19 @@ if ((savedSettings.compressionMethod !== 'wah' && savedSettings.compressionMetho
 
     // Add event listeners for buttons
     document.getElementById('next-step').addEventListener('click', function() {
-        wahVisualizer.transitionNext();
+        visualizer.transitionNext();
         setTimeout(scrollToEnd, 600); // Increased delay
     });
     document.getElementById('micro-step').addEventListener('click', function() {
-        wahVisualizer.transitionMicro();
+        visualizer.transitionMicro();
         setTimeout(scrollToEnd, 500); // Increased delay
     });
     document.getElementById('back-step').addEventListener('click', function() {
-        wahVisualizer.stepBack();
+        visualizer.stepBack();
         
     });
     document.getElementById('reset-btn').addEventListener('click', function() {
-        wahVisualizer.reset();
+        visualizer.reset();
         
     });
 }
