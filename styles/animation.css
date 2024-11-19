@@ -1,0 +1,59 @@
+.controls {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.visualization {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-style: italic;
+    color: #777;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+#compressedSoFar {
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+/* Compressed Content Container */
+#compressedContent {
+    width: 100%;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    white-space: nowrap;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 10px;
+    height: 50px;
+    scrollbar-width: auto;  /* For Firefox */
+    scrollbar-color: #888 #f1f1f1;  /* For Firefox */
+}
+
+/* Webkit scrollbar styles (Chrome, Safari, Edge) */
+#compressedContent::-webkit-scrollbar {
+    height: 12px;
+}
+
+#compressedContent::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 6px;
+}
+
+#compressedContent::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 6px;
+}
+
+#compressedContent::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
