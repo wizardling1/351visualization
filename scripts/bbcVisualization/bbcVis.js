@@ -20,8 +20,8 @@ class bbcVis {
         console.log(this.states)
         
         // Keep track of the current state and step
-        this.currentStateIndex = 0;
-        this.stateStep = 1;
+        this.state = 0;
+        this.step = 1;
 
         // Canvas setup
         const canvasWidth = 600;
@@ -44,6 +44,12 @@ class bbcVis {
         const canvasWidth = 600;
         const canvasHeight = 300;
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+        // Current chunk index
+        const curr_chunk = state.startChunk + curr_run - 1;
+
+        // Number of literals counted at this step
+        const litCount = curr_run - state.runs + Math.floor(transition);
         
         // Uncompressed Bits Display
         {   
@@ -52,19 +58,23 @@ class bbcVis {
             ctx.fillStyle = 'black';
             const bitWidth = ctx.measureText("0").width;
 
-            // Dynamic start point based on transition (animation)
-            const start_point = 5 - (transition * 9 * bitWidth);
+            // Offset = chunk index * 9 (8 bits per chunk + 1 space) * bit width
+            const chunk_offset = curr_chunk * 9 * bitWidth;
+            
+            // Animation = 0 if not animating, otherwise, offset based on transition
+            const anim_offset = transition * 9 * bitWidth;
+
+            // 5 -> margin, chunk_offset + anim_offset -> current position
+            const start_point = 5 - (chunk_offset + anim_offset);
 
             // If at the end of run counting, compress the run bytes
-            let current_uncompressed;
-            if (state.runs > 1 && curr_run == state.runs) {
-                current_uncompressed = "00....00 " + this.uncompressed.slice(state.startChunk + curr_run).join(" ");
-            } 
+            if (state.runs > 1 && curr_run == state.runs)
+                this.uncompressed[curr_chunk] = "00....00";
             // Otherwise, display current word and future words, joined by spaces
-            else {
-                current_uncompressed = this.uncompressed.slice(state.startChunk + curr_run - 1).join(" ");
-            }
-            ctx.fillText(current_uncompressed, start_point, 60);
+            else
+                this.uncompressed[state.startChunk + state.runs - 1] = "00000000";
+            
+            ctx.fillText(this.uncompressed.join(" "), start_point, 60);
         
             // Highlight around current step
             let highlightWidth = 8 * bitWidth;
@@ -74,7 +84,7 @@ class bbcVis {
             // If we're in a special word, highlight the dirty bit
             if(curr_run > state.runs && state.special){
                 ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
-                let dbLoc = this.uncompressed[state.startChunk + curr_run - 1].indexOf("1");
+                let dbLoc = this.uncompressed[curr_chunk].indexOf("1");
                 ctx.fillRect(5 + (dbLoc) * bitWidth, 30, bitWidth, 40);
             }
         }
@@ -86,21 +96,22 @@ class bbcVis {
             ctx.fillStyle = 'black';
 
             // Display the number of runs (default)
+            // Flooring transition allows for dynamic counting
             let runCount = curr_run + Math.floor(transition);
-            let top_text = `${runCount} run${runCount > 1 ? 's' : ''} of 0's`;
+            let top_text = `${runCount} run${runCount == 1 ? '' : 's'} of 0's`;
             
             // If we're not in a run...
             if (curr_run > state.runs) {
 
                 // If we're in a special word, display the dirty bit location
                 if (state.special && curr_run == state.runs + 1) {
-                    let word = this.uncompressed[state.startChunk + curr_run - 1];
-                    top_text = `Dirty Bit Location: ${word.indexOf(1)}`;
+                    top_text = `DB Location: ${this.uncompressed[curr_chunk].indexOf(1)}`;
                 }
 
                 // Otherwise, display the number of literals
                 else {
-                    top_text = `Number of literals: ${curr_run - state.runs + Math.floor(transition)}`;
+                    // Flooring transition allows for dynamic counting
+                    top_text = `${litCount} literal${litCount == 1 ? '' : 's'}`;
                 }
             }
 
@@ -111,18 +122,20 @@ class bbcVis {
         // Compressed Test Display
         {   
             let compressed;
-            if (curr_run > state.runs && state.special) {
-                compressed = state.encodedChunk.split(" ")[0];
-            }
+
+            // End of a special chunk, display the encoded byte
+            if (curr_run > state.runs && state.special) 
+                compressed = state.encodedChunk;
+
             else{
-                compressed = Math.min(curr_run + Math.floor(transition), 7).toString(2).padStart(3, '0') + "0";
+                // Compress the run count first (header bits 1-3)
+                compressed = Math.min(curr_run + Math.floor(transition), 7).toString(2).padStart(3, '0')
                 
-                if (curr_run > state.runs){
-                    compressed += Math.min(curr_run - state.runs + Math.floor(transition), 15).toString(2).padStart(4, '0');
-                }
-                else{
-                    compressed += "0000";
-                }
+                // Non-special chunk (header bit 4)
+                compressed += "0"; 
+                
+                // Append literal count if we're at the lit counting step (header bits 5-8)
+                compressed += curr_run > state.runs ? Math.min(litCount, 15).toString(2).padStart(4, '0') : "0000";
             }
         
             ctx.font = `bold 110px monospace`;
@@ -136,16 +149,16 @@ class bbcVis {
 
         // Header bit
         // Underline first bit
-        ctx.strokeStyle = '#FF69B4';
+        ctx.strokeStyle = 'red';
         ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.moveTo(gap, 240);
         ctx.lineTo(3 * bitWidth - gap, 240);
         ctx.stroke();
         ctx.font = `bold 20px Arial`;
-        ctx.fillStyle = '#FF69B4';
+        ctx.fillStyle = 'red';
         let runCount = curr_run + Math.floor(transition);
-        ctx.fillText(`${runCount <= 6 ? Math.min(runCount, state.runs) : '6+'} runs of 0`, bitWidth + gap, 270);
+        ctx.fillText(`${runCount <= 6 ? Math.min(runCount, state.runs) : '6+'} run${runCount == 1 ? '' : 's'} of 0`, gap, 270);
 
         if (curr_run > state.runs && state.special) {
             // Underline second bit
@@ -156,43 +169,54 @@ class bbcVis {
             ctx.lineTo(4 * bitWidth - gap, 240);
             ctx.stroke();
             ctx.fillStyle = 'blue';
-            ctx.fillText(`spec?`, gap + bitWidth * 3, 270);
+            ctx.fillText(`dirty`, gap + bitWidth * 3, 270);
             
             // Underline rest of the string
-            ctx.strokeStyle = 'green';
+            ctx.strokeStyle = 'black';
             ctx.lineWidth = 4;
             ctx.beginPath();
             ctx.moveTo(bitWidth * 4 + gap, 240);
             ctx.lineTo(compressedWidth - gap, 240);
             ctx.stroke();
-            ctx.fillStyle = 'green';
+            ctx.fillStyle = 'black';
             ctx.fillText(`DB location/ # of literals`, 4 * bitWidth + gap * 2, 270);
     
         }
         else if (curr_run > state.runs && !state.special) {
-            // Literal
-            ctx.strokeStyle = 'green';
+            // Underline second bit
+            ctx.strokeStyle = 'blue';
             ctx.lineWidth = 4;
             ctx.beginPath();
-            ctx.moveTo(bitWidth*3 + gap, 240);
+            ctx.moveTo(3 * bitWidth + gap, 240);
+            ctx.lineTo(4 * bitWidth - gap, 240);
+            ctx.stroke();
+            ctx.fillStyle = 'blue';
+            ctx.fillText(`no`, gap + bitWidth * 3, 270);
+            ctx.fillText(`dirty`, gap + bitWidth * 3, 290);
+
+            // Literal
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(bitWidth*4 + gap, 240);
             ctx.lineTo(compressedWidth - gap, 240);
             ctx.stroke();
-            ctx.fillStyle = 'green';
+            ctx.fillStyle = 'black';
             let litCount = curr_run - state.runs + Math.floor(transition)
-            ctx.fillText(`${litCount} literal${litCount > 1 ? 's' : ''}`, 3 * bitWidth + gap * 2, 270);
+            ctx.fillText(`${litCount} literal${litCount > 1 ? 's' : ''}`, 4 * bitWidth + gap * 2, 270);
         }
     
         // Add small text in the bottom right
         ctx.font = `bold 15px Arial`;
         ctx.fillStyle = 'black';
-        ctx.fillText(`word : ${this.currentStateIndex + 1}`, canvasWidth - 100, canvasHeight - 10);
+        ctx.fillText(`word : ${this.state + 1}`, canvasWidth - 100, canvasHeight - 10);
     }
     
 
     updateCompressedSoFar(lastElement = false) {
         let compressedSoFar = [];
         // this is the number of states we go through we we are on the last element print all states.
-        const numOfStates = lastElement ? this.currentStateIndex + 1 : this.currentStateIndex; 
+        const numOfStates = lastElement ? this.state + 1 : this.state; 
         for (let i = 0; i < numOfStates; i++) {
             compressedSoFar.push(this.states[i].encodedChunk);
         }
@@ -201,14 +225,14 @@ class bbcVis {
 
     // transition to the next compressed word or to the end of current one
     transitionNext() {
-        let currState = this.states[this.currentStateIndex];
-        let currStep = this.stateStep;
+        let currState = this.states[this.state];
+        let currStep = this.step;
         const numSteps = currState.endChunk - currState.startChunk;
 
         // If we're counting runs, skip to the end of the run
         if (currStep < currState.runs) {
             // Set the state step to the end of the runs
-            this.stateStep = currState.runs;
+            this.step = currState.runs;
             
             // Animate the transition from the current state to the end of the runs
             requestAnimationFrame(this.animate(currState, currStep, performance.now(), currState.runs-currStep).bind(this));
@@ -217,29 +241,29 @@ class bbcVis {
 
         // If we're at the end of runs, move to the next step
         if (currStep == currState.runs) {
-            this.stateStep += 1;
+            this.step += 1;
             requestAnimationFrame(this.animate(currState, currStep, performance.now()).bind(this));
             return;
         }
 
         // If we're at the end of the last state, we are done
-        if (this.currentStateIndex >= this.states.length - 1 && this.stateStep >= numSteps) {
+        if (this.state >= this.states.length - 1 && this.step >= numSteps) {
             this.updateCompressedSoFar(true);
             return;
         }
 
         // If we're at the end of the current state, move to the next state
-        if (this.stateStep >= numSteps) {
-            currState = this.states[++this.currentStateIndex];
+        if (this.step >= numSteps) {
+            currState = this.states[++this.state];
             currStep = 0;
-            this.stateStep = 1;
+            this.step = 1;
             requestAnimationFrame(this.animate(currState, currStep, performance.now()).bind(this));
         }
 
         // If we're in the middle of a state, step to the next state
         else{
             // Set the state step to the end of the runs
-            this.stateStep = numSteps;
+            this.step = numSteps;
             
             // Animate the transition from the current state to the end of the runs
             requestAnimationFrame(this.animate(currState, currStep, performance.now(), numSteps-currStep).bind(this));
@@ -249,63 +273,78 @@ class bbcVis {
 
     // transition to the next micro step eg.. one more run of current word
     transitionMicro() {
-        let fromState = this.states[this.currentStateIndex];
-        let fromStep = this.stateStep;
+        let fromState = this.states[this.state];
+        let fromStep = this.step;
         const numSteps = fromState.endChunk - fromState.startChunk;
         
         // If we are at the end of the last state, we are done
-        if (this.currentStateIndex >= this.states.length - 1 && this.stateStep >= numSteps) {
+        if (this.state >= this.states.length - 1 && this.step >= numSteps) {
             this.updateCompressedSoFar(true);
             return;
         }
 
         // If we are at the end of the current state, we move to the next state
-        if (this.stateStep == numSteps) {
-            fromState = this.states[++this.currentStateIndex];
+        if (this.step == numSteps) {
+            fromState = this.states[++this.state];
             
             // Step 0 means transitioning into next chunk
             fromStep = 0; 
-            this.stateStep = 1;
+            this.step = 1;
         } 
         
         // If we are in the middle of a state, we step to the next step
         else {
-            this.stateStep++;
+            this.step++;
         }
 
-        requestAnimationFrame(this.animate(fromState, fromStep, performance.now()).bind(this));
+        requestAnimationFrame(this.animate(fromState, fromStep, performance.now(), 1).bind(this));
     }
 
     // if we are in the middle of a state, or at the end we step back to the beginning
     stepBack() {    
-        const fromState = this.states[this.currentStateIndex];
-        const fromRun = this.stateStep;
+        let fromState = this.states[this.state];
+        let fromRun = this.step;
 
-        if ((this.currentStateIndex === 0 && fromState.runs === 0) || (this.currentStateIndex === 0 && fromRun === 1)) {
+        if ((this.state === 0 && fromState.runs === 0) || (this.state === 0 && fromRun === 1)) {
             return; // we are at the first step
         }
 
         // if the state was a literal or we were on the first run
         if (fromState.runs === 0 || fromRun === 1) {
-            this.currentStateIndex--;
-            this.stateStep = this.states[this.currentStateIndex].runs;
-        } else {
-            this.stateStep = 1;
+            this.state--;
+            let prevState = this.states[this.state];
+            this.step = prevState.endChunk - prevState.startChunk;
+            requestAnimationFrame(this.animate(fromState, fromRun, performance.now(), -1).bind(this));
         }
 
-        this.drawCanvas(this.states[this.currentStateIndex], 0, this.stateStep);
-        this.updateCompressedSoFar();
+        // Within run counting step, step back to first run
+        else if (fromRun <= fromState.runs) {
+            this.step = 1;
+            requestAnimationFrame(this.animate(fromState, fromRun, performance.now(), -fromRun + 1).bind(this));
+        }
+
+        // On dirty byte or first literal counting step, go back to the end of run counting
+        else if (fromRun === fromState.runs + 1) {
+            this.step = fromState.runs;
+            requestAnimationFrame(this.animate(fromState, fromRun, performance.now(), -1).bind(this));
+        }
+        
+        // Within literal counting step, go back to first literal counting step
+        else {
+            this.step = fromState.runs + 1;
+            requestAnimationFrame(this.animate(fromState, fromRun, performance.now(), fromState.runs - fromRun + 1).bind(this));
+        }
     }
 
     // reset to the beginning
     reset() {
         
-        this.currentStateIndex = 0;
-        this.stateStep = 1;
+        this.state = 0;
+        this.step = 1;
         // document.getElementById('nextButton').disabled = false;
         // document.getElementById('microButton').disabled = false;
         this.outputText.innerText = '';
-        this.drawCanvas(this.states[this.currentStateIndex]);
+        this.drawCanvas(this.states[this.state]);
         this.updateCompressedSoFar();
     }
 
@@ -315,14 +354,14 @@ class bbcVis {
             const elapsed = currentTime - startTime;
             const progress = Math.min(elapsed / 750, 1);
 
-            const easedProgress = easeInOutQuad(progress) * distance;
-            
+            let easedProgress = easeInOutQuad(progress) * distance;
+
             this.drawCanvas(fromState, easedProgress, fromRun);
 
             if (progress < 1) {
                 requestAnimationFrame(this.animate(fromState, fromRun, startTime, distance).bind(this));
             } else {
-                this.drawCanvas(this.states[this.currentStateIndex], 0, this.stateStep);
+                this.drawCanvas(this.states[this.state], 0, this.step);
                 this.updateCompressedSoFar();
             }
         };
