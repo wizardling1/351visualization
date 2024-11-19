@@ -293,14 +293,18 @@ class wahVis {
         const fromStateIndex = this.currentStateIndex;
         const fromState = this.states[fromStateIndex];
         const fromRun = this.currRunShown;
-
-        if (this.currentStateIndex >= this.states.length - 1) {
+        
+        // if we are on the last state, and showing all the runs.
+        if (this.currentStateIndex >= this.states.length - 1 && this.currRunShown == fromState.runs) {
             this.updateCompressedSoFar(true);
             return;
         }
-
+        
+        // we are not on the last run, go to last run
         if (this.currRunShown != fromState.runs) {
             this.currRunShown = fromState.runs;
+            
+        // other wise go to the next state
         } else if (this.currentStateIndex < this.states.length - 1) {
             this.currentStateIndex++;
             this.currRunShown = this.states[this.currentStateIndex].runs;

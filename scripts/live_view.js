@@ -227,22 +227,29 @@ const outputField = document.getElementById('compressed-output');
 // Load saved input data from localStorage
 const savedInputData = localStorage.getItem('inputData');
 if (savedInputData !== null) {
-    inputField.value = savedInputData;
+    inputField.value = savedInputData
 }
 
 const updateOutputField = () => {
+    let toCompress = inputField.value;
+    if (inputField.value) {
+        toCompress = inputField.value.replace(/[^01]/g, '');
+    }
     const compressionMethod = compressionSettingsManager.compressionSettings.compressionMethod;
     const wordSize = compressionSettingsManager.compressionSettings.wordSize;
     const numSegments = compressionSettingsManager.compressionSettings.numSegments;
 
     if (compressionMethod == 'wah') {
-        outputField.value = wahCompress(inputField.value, wordSize).str;
+        outputField.value = wahCompress(toCompress, wordSize).str;
     }
     else if (compressionMethod == 'val') {
-        outputField.value = valCompress(inputField.value, wordSize, numSegments).str;
+        outputField.value = valCompress(toCompress, wordSize, numSegments).str;
     }
     else if (compressionMethod == 'bbc') {
-        outputField.value = bbcCompress(inputField.value);
+        // unpack output and states from bbc compression
+        console.log(toCompress);
+        let output = bbcCompress(toCompress);
+        outputField.value = output.match(/.{1,8}/g)?.join(' ') || output; // Regex optional
     }
 }
 
@@ -252,13 +259,18 @@ compressionSettingsManager.init();
 
 // Initial update of the output field
 updateOutputField();
+inputField.value = inputField.value.match(/.{1,8}/g)?.join(' ') || inputField.value;
 
-inputField.addEventListener('input', event => {
+inputField.addEventListener('input', event => { 
     // ensure only 1 and 0 are entered
     event.target.value = event.target.value.replace(/[^01]/g, '');
+
     // Save input data to localStorage
     localStorage.setItem('inputData', event.target.value);
     updateOutputField();
+
+    // Format the inputfield to have spaces between bytes
+    inputField.value = inputField.value.match(/.{1,8}/g)?.join(' ') || inputField.value;
 });
 
 const updateAnimations = () =>{
