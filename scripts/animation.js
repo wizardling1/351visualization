@@ -12,8 +12,6 @@ const savedInputData = localStorage.getItem('inputData');
 // Check if the settings and input data are valid
 if ((savedSettings.compressionMethod !== 'wah' && savedSettings.compressionMethod !== 'val') || savedSettings.wordSize == 64) {
     document.getElementById('VisTitle').innerHTML = 'Please choose either WAH or VAL with a word size of 8 - 32.';
-} else if (!savedInputData || savedInputData.length == 0) {
-    document.getElementById('VisTitle').innerHTML = 'Please go to live view and input your uncompressed bits';
 } else {
     // Now you can use the wahVis class in this file
 
@@ -80,4 +78,13 @@ if ((savedSettings.compressionMethod !== 'wah' && savedSettings.compressionMetho
         wahVisualizer.reset();
         
     });
+
+    window.addEventListener('compressionSettingsUpdated', function() {
+        alert('Compression settings have been updated - refresh to see changes')
+        //TODO 
+        //pull most recent visualization code from main 
+        //reset the visualization canvas with new settings 
+
+    });
+
 }

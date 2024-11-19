@@ -260,3 +260,20 @@ inputField.addEventListener('input', event => {
     localStorage.setItem('inputData', event.target.value);
     updateOutputField();
 });
+
+const updateAnimations = () =>{
+    compressionSettingsManager.saveSettings();
+    //have to dispatch custom event because listener on local storage only works with separate tabs
+    const updateEvent = new CustomEvent('compressionSettingsUpdated');
+    window.dispatchEvent(updateEvent);
+}
+
+inputField.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        updateAnimations()
+    }
+});
+
+document.getElementById('animateButton').addEventListener('click', event => {
+    updateAnimations()
+})
