@@ -14,7 +14,6 @@ class CompressionSettingsManager {
         this.compressionSettings = getStoredCompressionSettings();
 
         this.rows = document.querySelectorAll(".selection-row");
-        this.compressionRow = document.querySelector("#compressionSelector");
         this.wordSizeRow = document.querySelector("#wordSizeSelector");
         this.numSegmentRow = document.querySelector("#segmentCountSelector");
         this.wahButton = document.querySelector("#wahButton");
@@ -39,7 +38,7 @@ class CompressionSettingsManager {
             row.querySelectorAll('button').forEach(button => {
                 button.addEventListener('click', () => {
                     this.clearRowSelections(row);
-                    button.classList.add('selected');
+                    button.classList.add('active');
                 });
             })
         });
@@ -76,14 +75,14 @@ class CompressionSettingsManager {
                 });
             }
             this.compressionSettings.compressionMethod = type;
-            // Remove 'selected' class from all compression buttons
-            this.wahButton.classList.remove('selected');
-            this.valButton.classList.remove('selected');
-            this.bbcButton.classList.remove('selected');
-            // Add 'selected' class to the clicked button
+            // Remove 'active' class from all compression buttons
+            this.wahButton.classList.remove('active');
+            this.valButton.classList.remove('active');
+            this.bbcButton.classList.remove('active');
+            // Add 'active' class to the clicked button
             const clickedButton = document.querySelector(`#${type}Button`);
             if (clickedButton) {
-                clickedButton.classList.add('selected');
+                clickedButton.classList.add('active');
             }
             this.saveSettings(); // Save to localStorage
             this.updateFunction();
@@ -106,7 +105,7 @@ class CompressionSettingsManager {
             this.compressionSettings.wordSize = parseInt(wordSize);
             if (this.compressionSettings.compressionMethod == 'val') {
                 this.numSegmentRow.querySelectorAll('.btn').forEach(button => {
-                    button.classList.remove('selected');
+                    button.classList.remove('active');
                     button.style.display = 'none';
                 });
                 wordSizeSegments[wordSize].forEach(segmentCount => {
@@ -140,14 +139,14 @@ class CompressionSettingsManager {
     }
 
     clearRowSelections(row) {
-        row.querySelectorAll('button').forEach(button => button.classList.remove('selected'));
+        row.querySelectorAll('button').forEach(button => button.classList.remove('active'));
     }
 
     selectButton(row, buttonValue) {
-        row.querySelectorAll('button').forEach(button => button.classList.remove('selected'));
+        row.querySelectorAll('button').forEach(button => button.classList.remove('active'));
         const button = [...row.querySelectorAll('button')].find(b => b.textContent == buttonValue);
         if (button) {
-            button.classList.add('selected');
+            button.classList.add('active');
         }
     }
 
@@ -156,16 +155,16 @@ class CompressionSettingsManager {
     }
 
     restoreSelections() {
-        // Remove 'selected' class from all compression buttons
-        this.wahButton.classList.remove('selected');
-        this.valButton.classList.remove('selected');
-        this.bbcButton.classList.remove('selected');
+        // Remove 'active' class from all compression buttons
+        this.wahButton.classList.remove('active');
+        this.valButton.classList.remove('active');
+        this.bbcButton.classList.remove('active');
 
         // Restore compression method selection
         const compressionMethod = this.compressionSettings.compressionMethod;
         const compressionButton = document.querySelector(`#${compressionMethod}Button`);
         if (compressionButton) {
-            compressionButton.classList.add('selected');
+            compressionButton.classList.add('active');
         }
 
         // Adjust word size and segment buttons visibility based on compression method
@@ -195,7 +194,7 @@ class CompressionSettingsManager {
                     }
                 });
             }
-            // Ensure numSegments is selected
+            // Ensure numSegments is active
             this.selectButton(this.numSegmentRow, this.compressionSettings.numSegments);
         } else if (compressionMethod === 'wah') {
             toggleWordSizeButtons.forEach(button => {
