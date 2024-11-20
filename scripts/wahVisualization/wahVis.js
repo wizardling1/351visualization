@@ -1,4 +1,4 @@
-import { getValSegmentLength } from '../compression/raw_compression/val.js';
+import { getValSegmentLength } from '../compression/val.js';
 import { simplifyString, decimalToBinary, drawArrow } from './helperFunctions.js';
 
 class wahVis {

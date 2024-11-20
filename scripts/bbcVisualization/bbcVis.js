@@ -1,4 +1,4 @@
-import { bbcCompress } from "../compression/raw_compression/bbc.js";
+import { bbcCompress } from "../compression/bbc.js";
 
 // Easing function (ease-in-out)
 function easeInOutQuad(t) {

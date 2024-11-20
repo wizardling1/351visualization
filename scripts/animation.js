@@ -1,8 +1,8 @@
 import wahVis from '../scripts/wahVisualization/wahVis.js';
 import bbcVis from './bbcVisualization/bbcVis.js';
-import { wahCompress } from '../scripts/compression/raw_compression/wah.js';
-import { valCompress, getValSegmentLength } from './compression/raw_compression/val.js';
-import { bbcCompress } from './compression/raw_compression/bbc.js';
+import { wahCompress } from '../scripts/compression/wah.js';
+import { valCompress, getValSegmentLength } from './compression/val.js';
+import { bbcCompress } from './compression/bbc.js';
 import { AnimSettingsManager } from './AnimSettingsManager.js'
 
 function compress(inputBitstring, settings, getStates) {
