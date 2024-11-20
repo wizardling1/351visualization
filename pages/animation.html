@@ -14,7 +14,6 @@
     <link rel="stylesheet" href="../styles/animation.css">
 
     <!-- scripts -->
-    <script defer type='module' src='../scripts/live_view.js'></script>
     <script defer type="module" src="../scripts/animation.js"></script>
 </head>
 <body>
@@ -26,6 +25,7 @@
         <!-- Input header -->
         <div class="row">
             <div class="col-lg-4 mb-3">
+                <!-- Buttons -->
                 <div class="container">
                     <div class="row mb-3 align-items-center">
                         <div class="col-4 text-end">
@@ -49,7 +49,6 @@
                                 <button class="btn btn-secondary active" data-bs-toggle="button" id="wordSize8Button">8</button>
                                 <button class="btn btn-secondary" id="wordSize16Button">16</button>
                                 <button class="btn btn-secondary" id="wordSize32Button">32</button>
-                                <button class="btn btn-secondary" id="wordSize64Button">64</button>
                             </div>
                         </div>
                     </div>
@@ -59,17 +58,17 @@
                                 Segments</label>
                         </div>
                         <div class="col-8">
-                            <div class="btn-group selection-row" id="segmentCountSelector">
+                            <div class="btn-group selection-row" id="segmentCountSelector" style="min-height: 38px">
                                 <button class="btn btn-secondary" style="display: none">1</button>
                                 <button class="btn btn-secondary active" style="display: none" id="segmentCount2Button">2</button>
                                 <button class="btn btn-secondary" style="display: none">4</button>
                                 <button class="btn btn-secondary" style="display: none">8</button>
-                                <button class="btn btn-secondary" style="display: none">16</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <!-- Textbox for input bits -->
             <div class="col-lg-4 mb-3">
                 <textarea id="input-data"
                     placeholder="Enter yout bitmap data (1s and 0s)"
@@ -80,6 +79,7 @@
                     <input type="number" id="word-size" min="2" value="32">
                 </div>
             </div>
+            <!-- Textbox for compressed output -->
             <div class="col-lg-4 mb-3">
                 <textarea id="compressed-output"
                     readonly
@@ -91,38 +91,39 @@
         <!-- Visualization -->
         <div class="row">
             <div class="col">
-                <section class="section visualization-section">
-                    <h2 id="VisTitle" class="hidden">Visualization</h2>
-                    <div class="visualization">
-                        <canvas id="animationCanvas"></canvas>
+                <!-- The actual visualization -->
+                <div class="container visualization" id="animationContainer">
+                    <div class="row">
+                        <div class="col d-flex justify-content-center">
+                            <canvas id="animationCanvas"></canvas>
+                        </div>
                     </div>
-                    <div class="controls">
-                        <button class="btn btn-secondary" id="back-step">Back Step</button>
-                        <button class="btn btn-secondary" id="micro-step">Micro Step</button>
-                        <button class="btn btn-secondary" id="next-step">Next Step</button>
-                        <button class="btn btn-secondary" id="reset-btn">Reset</button>
+                    <div class="row mt-3">
+                        <div class="col">
+                            <div class="controls">
+                                <button class="btn btn-secondary" id="back-step">Back Step</button>
+                                <button class="btn btn-secondary" id="micro-step">Micro Step</button>
+                                <button class="btn btn-secondary" id="next-step">Next Step</button>
+                                <button class="btn btn-secondary" id="reset-btn">Reset</button>
+                            </div>
+                        </div>
                     </div>
-                </section>
+                </div>
+                <!-- The text/buttons to start animation -->
+                <div class="container visualization d-flex justify-content-center align-items-center" id="animationInstructionContainer">
+                    <div class="text-center">
+                        <p id="animationInstructionText">Enter bits to start the animation.</p>
+                    </div>
+                </div>
             </div>
         </div>
-        <!-- Compressed So Far -->
+        <!-- Box with bits compressed so far -->
         <div class="row">
             <div class="col">
-                <!---
-                 <div class="form-floating">
-                    <input type="email" id="email" class="form-control" placeholder="" required>
-                    <label for="email" class="form-label">Email</label>
-                </div>
-                -->
                 <div id="compressedSoFar">
                     <strong>Compressed So Far:</strong>
                     <div id="compressedContent"></div>
                 </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="container d-flex justify-content-center align-items-center">
-                <button class="btn btn-animate" type="submit" style="text-align: center;" id="animateButton" >Animate</button>
             </div>
         </div>
     </div>

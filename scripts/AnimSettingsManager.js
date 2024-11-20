@@ -1,28 +1,26 @@
-import { wahCompress, valCompress, bbcCompress } from './compression/raw_compression/compressions.js';
-import { getStoredCompressionSettings } from './storage.js';
-
-const wordSizeSegments = {
-    '8': ['1', '2'],
-    '16': ['1', '2', '4'],
-    '32': ['1', '2', '4', '8'],
-    '64': ['1', '2', '4', '8', '16'],
+const ANIM_CONFIG = {
+    DEFAULT_SETTINGS: {
+        compressionMethod: 'wah',
+        wordSize: 8,
+        numSegments: 2,
+    },
+    WORD_SIZE_SEGMENTS: {
+        '8': ['1', '2'],
+        '16': ['1', '2', '4'],
+        '32': ['1', '2', '4', '8'],
+        '64': ['1', '2', '4', '8', '16'],
+    },
 };
 
-class CompressionSettingsManager {
+export class AnimSettingsManager {
     constructor(updateFunction) {
-        // Load settings from localStorage if available
-        this.compressionSettings = getStoredCompressionSettings();
-
         this.rows = document.querySelectorAll(".selection-row");
         this.wordSizeRow = document.querySelector("#wordSizeSelector");
         this.numSegmentRow = document.querySelector("#segmentCountSelector");
         this.wahButton = document.querySelector("#wahButton");
         this.valButton = document.querySelector("#valButton");
         this.bbcButton = document.querySelector("#bbcButton");
-        if (typeof(updateFunction) == 'function') 
-            this.updateFunction = updateFunction;
-        else
-            this.updateFunction = () => 1;
+        this.updateFunction = typeof updateFunction === 'function' ? updateFunction : () => {};
     }
 
     init() {
@@ -30,7 +28,7 @@ class CompressionSettingsManager {
         this.initCompressionRow();	
         this.initWordSizeRow();
         this.initNumSegmentRow();
-        this.restoreSelections(); // Restore button selections
+        this.restoreSelections(); 
     }
 
     initButtonHighlighting() {
@@ -50,6 +48,7 @@ class CompressionSettingsManager {
         const segmentButtons = this.numSegmentRow.querySelectorAll('.btn');
 
         const compressionButtonClickAction = (type) => {
+            let settings = this.getSettings();
             toggleWordSizeButtons.forEach(button => {
                 button.style.display = (type == 'bbc') ? 'none' : 'flex';
             });
@@ -57,9 +56,9 @@ class CompressionSettingsManager {
                 segmentButtons.forEach(button => {
                     button.style.display = 'none';
                 });
-                const wordSize = this.compressionSettings.wordSize.toString();
-                if (wordSizeSegments[wordSize]) {
-                    wordSizeSegments[wordSize].forEach(segmentCount => {
+                const wordSize = settings.wordSize.toString();
+                if (ANIM_CONFIG.WORD_SIZE_SEGMENTS[wordSize]) {
+                    ANIM_CONFIG.WORD_SIZE_SEGMENTS[wordSize].forEach(segmentCount => {
                         const btn = [...segmentButtons].find(b => b.textContent == segmentCount);
                         if (btn) {
                             btn.style.display = 'flex';
@@ -67,14 +66,14 @@ class CompressionSettingsManager {
                     });
                 }
                 // Set numSegments to 2 and select the button
-                this.compressionSettings.numSegments = 2;
-                this.selectButton(this.numSegmentRow, this.compressionSettings.numSegments);
+                settings.numSegments = 2;
+                this.selectButton(this.numSegmentRow, 2);
             } else {
                 segmentButtons.forEach(button => {
                     button.style.display = 'none';
                 });
             }
-            this.compressionSettings.compressionMethod = type;
+            settings.compressionMethod = type;
             // Remove 'active' class from all compression buttons
             this.wahButton.classList.remove('active');
             this.valButton.classList.remove('active');
@@ -84,8 +83,8 @@ class CompressionSettingsManager {
             if (clickedButton) {
                 clickedButton.classList.add('active');
             }
-            this.saveSettings(); // Save to localStorage
             this.updateFunction();
+            this.saveSettings(settings);
         }
 
         this.wahButton.addEventListener("click", () => {
@@ -102,13 +101,14 @@ class CompressionSettingsManager {
     initWordSizeRow() {
         const wordSizeButtonClickAction = (wsBtn) => {
             const wordSize = wsBtn.textContent;
-            this.compressionSettings.wordSize = parseInt(wordSize);
-            if (this.compressionSettings.compressionMethod == 'val') {
+            let settings = this.getSettings();
+            settings.wordSize = parseInt(wordSize);
+            if (settings.compressionMethod == 'val') {
                 this.numSegmentRow.querySelectorAll('.btn').forEach(button => {
                     button.classList.remove('active');
                     button.style.display = 'none';
                 });
-                wordSizeSegments[wordSize].forEach(segmentCount => {
+                ANIM_CONFIG.WORD_SIZE_SEGMENTS[wordSize].forEach(segmentCount => {
                     const btn = [...this.numSegmentRow.querySelectorAll('.btn')]
                         .find(b => b.textContent == segmentCount);
                     if (btn) {
@@ -116,11 +116,11 @@ class CompressionSettingsManager {
                     }
                 });
                 // Set numSegments to 2 and select the button
-                this.compressionSettings.numSegments = 2;
-                this.selectButton(this.numSegmentRow, this.compressionSettings.numSegments);
+                settings.numSegments = 2;
+                this.selectButton(this.numSegmentRow, settings.numSegments);
             }
-            this.saveSettings(); // Save to localStorage
             this.updateFunction();
+            this.saveSettings(settings);
         }
 
         this.wordSizeRow.querySelectorAll('button').forEach(btn => {
@@ -131,8 +131,9 @@ class CompressionSettingsManager {
     initNumSegmentRow() {
         this.numSegmentRow.querySelectorAll('button').forEach(btn => {
             btn.addEventListener('click', () => {
-                this.compressionSettings.numSegments = parseInt(btn.textContent);
-                this.saveSettings(); // Save to localStorage
+                let settings = this.getSettings();
+                settings.numSegments = parseInt(btn.textContent);
+                this.saveSettings(settings);
                 this.updateFunction();
             });
         });
@@ -150,8 +151,17 @@ class CompressionSettingsManager {
         }
     }
 
-    saveSettings() {
-        localStorage.setItem('compressionSettings', JSON.stringify(this.compressionSettings));
+    getSettings() {
+        const savedSettings = JSON.parse(localStorage.getItem('animSettings'));
+        if (savedSettings) {
+            return savedSettings;
+        } else {
+            return ANIM_CONFIG.DEFAULT_SETTINGS;
+        }
+    }
+
+    saveSettings(settings) {
+        localStorage.setItem('animSettings', JSON.stringify(settings));
     }
 
     restoreSelections() {
@@ -161,7 +171,7 @@ class CompressionSettingsManager {
         this.bbcButton.classList.remove('active');
 
         // Restore compression method selection
-        const compressionMethod = this.compressionSettings.compressionMethod;
+        const compressionMethod = this.getSettings().compressionMethod;
         const compressionButton = document.querySelector(`#${compressionMethod}Button`);
         if (compressionButton) {
             compressionButton.classList.add('active');
@@ -185,9 +195,9 @@ class CompressionSettingsManager {
             segmentButtons.forEach(button => {
                 button.style.display = 'none';
             });
-            const wordSize = this.compressionSettings.wordSize.toString();
-            if (wordSizeSegments[wordSize]) {
-                wordSizeSegments[wordSize].forEach(segmentCount => {
+            const wordSize = this.getSettings().wordSize.toString();
+            if (ANIM_CONFIG.WORD_SIZE_SEGMENTS[wordSize]) {
+                ANIM_CONFIG.WORD_SIZE_SEGMENTS[wordSize].forEach(segmentCount => {
                     const btn = [...segmentButtons].find(b => b.textContent == segmentCount);
                     if (btn) {
                         btn.style.display = 'flex';
@@ -195,7 +205,7 @@ class CompressionSettingsManager {
                 });
             }
             // Ensure numSegments is active
-            this.selectButton(this.numSegmentRow, this.compressionSettings.numSegments);
+            this.selectButton(this.numSegmentRow, this.getSettings().numSegments);
         } else if (compressionMethod === 'wah') {
             toggleWordSizeButtons.forEach(button => {
                 button.style.display = 'flex';
@@ -207,84 +217,13 @@ class CompressionSettingsManager {
 
         // Restore word size selection
         this.clearRowSelections(this.wordSizeRow);
-        this.selectButton(this.wordSizeRow, this.compressionSettings.wordSize);
+        this.selectButton(this.wordSizeRow, this.getSettings().wordSize);
 
         // Restore number of segments selection
         this.clearRowSelections(this.numSegmentRow);
-        this.selectButton(this.numSegmentRow, this.compressionSettings.numSegments);
+        this.selectButton(this.numSegmentRow, this.getSettings().numSegments);
 
         // Update the UI to reflect the restored settings
         this.updateFunction();
     }
 }
-
-let compressionSettingsManager = new CompressionSettingsManager();
-
-const inputField = document.getElementById('input-data');
-const outputField = document.getElementById('compressed-output');
-
-// Load saved input data from localStorage
-const savedInputData = localStorage.getItem('inputData');
-if (savedInputData !== null) {
-    inputField.value = savedInputData
-}
-
-const updateOutputField = () => {
-    let toCompress = inputField.value;
-    if (inputField.value) {
-        toCompress = inputField.value.replace(/[^01]/g, '');
-    }
-    const compressionMethod = compressionSettingsManager.compressionSettings.compressionMethod;
-    const wordSize = compressionSettingsManager.compressionSettings.wordSize;
-    const numSegments = compressionSettingsManager.compressionSettings.numSegments;
-
-    if (compressionMethod == 'wah') {
-        outputField.value = wahCompress(toCompress, wordSize).str;
-    }
-    else if (compressionMethod == 'val') {
-        outputField.value = valCompress(toCompress, wordSize, numSegments).str;
-    }
-    else if (compressionMethod == 'bbc') {
-        // unpack output and states from bbc compression
-        console.log(toCompress);
-        let output = bbcCompress(toCompress);
-        outputField.value = output.match(/.{1,8}/g)?.join(' ') || output; // Regex optional
-    }
-}
-
-// Initialize the compression settings manager with the update function
-compressionSettingsManager.updateFunction = updateOutputField;
-compressionSettingsManager.init();
-
-// Initial update of the output field
-updateOutputField();
-inputField.value = inputField.value.match(/.{1,8}/g)?.join(' ') || inputField.value;
-
-inputField.addEventListener('input', event => { 
-    // ensure only 1 and 0 are entered
-    event.target.value = event.target.value.replace(/[^01]/g, '');
-
-    // Save input data to localStorage
-    localStorage.setItem('inputData', event.target.value);
-    updateOutputField();
-
-    // Format the inputfield to have spaces between bytes
-    inputField.value = inputField.value.match(/.{1,8}/g)?.join(' ') || inputField.value;
-});
-
-const updateAnimations = () =>{
-    compressionSettingsManager.saveSettings();
-    //have to dispatch custom event because listener on local storage only works with separate tabs
-    const updateEvent = new CustomEvent('compressionSettingsUpdated');
-    window.dispatchEvent(updateEvent);
-}
-
-inputField.addEventListener('keydown', function(event) {
-    if (event.key === 'Enter') {
-        updateAnimations()
-    }
-});
-
-document.getElementById('animateButton').addEventListener('click', event => {
-    updateAnimations()
-})

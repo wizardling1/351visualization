@@ -3,53 +3,59 @@ import bbcVis from './bbcVisualization/bbcVis.js';
 import { wahCompress } from '../scripts/compression/raw_compression/wah.js';
 import { valCompress, getValSegmentLength } from './compression/raw_compression/val.js';
 import { bbcCompress } from './compression/raw_compression/bbc.js';
-import { getStoredCompressionSettings } from './storage.js';
+import { AnimSettingsManager } from './AnimSettingsManager.js'
 
-// get settings and input from local
-const savedSettings = getStoredCompressionSettings();
-const savedInputData = localStorage.getItem('inputData');
-
-// Check if the settings and input data are valid
-if ((savedSettings.compressionMethod in ["wah", "val", "bbc"]) || savedSettings.wordSize == 64) {
-    document.getElementById('VisTitle').innerHTML = 'Please choose either WAH or VAL with a word size of 8 - 32.';
-} else {
-    // Now you can use the wahVis class in this file
-
-    let states;
-
-    switch (savedSettings.compressionMethod) {
+function compress(inputBitstring, settings, getStates) {
+    switch (settings.compressionMethod) {
         case 'wah':
-            states = wahCompress(savedInputData, savedSettings.wordSize, true)
-            break;
+            if (getStates)
+                return wahCompress(inputBitstring, settings.wordSize, true);
+            else
+                return wahCompress(inputBitstring, settings.wordSize).str;
         case 'val':
-            states = valCompress(savedInputData, savedSettings.wordSize, savedSettings.numSegments, true)
-            break;
+            if (getStates)
+                return valCompress(inputBitstring, settings.wordSize, settings.numSegments, true);
+            else
+                return valCompress(inputBitstring, settings.wordSize, settings.numSegments).str;
         case 'bbc':
-            states = bbcCompress(savedInputData, true)
-            break;
+            if (getStates)
+                return bbcCompress(inputBitstring, true);
+            else
+                return bbcCompress(inputBitstring);
     }
+}
 
-    console.log(states)
+function initAnimation(inputBitstring, settings) {
+    // If the input is empty, tell the user to add more input
+    if (inputBitstring.length == 0) {
+        document.getElementById('animationContainer').classList.add('d-none');
+        document.getElementById('animationInstructionContainer').classList.remove('d-none');
+        return;
+    }
+    document.getElementById('animationContainer').classList.remove('d-none');
+    document.getElementById('animationInstructionContainer').classList.add('d-none');
 
+    // Now you can use the wahVis class in this file
+    let states = compress(inputBitstring, settings, true);
     const canvasId = 'animationCanvas';
     const compressedContentId = 'compressedContent';
 
-    const wordSize = savedSettings.wordSize;
+    const wordSize = settings.wordSize;
     let litSize = wordSize - 1;
     let numSegments = 1;
 
-    if (savedSettings.compressionMethod === 'val') {
-        litSize = getValSegmentLength(wordSize, savedSettings.numSegments);
-        numSegments = savedSettings.numSegments;
+    if (settings.compressionMethod === 'val') {
+        litSize = getValSegmentLength(wordSize, settings.numSegments);
+        numSegments = settings.numSegments;
     }
 
-   // old test const uncompressed = '010100100000000000000000000011111111111111111111111111111110101';
+    // old test const uncompressed = '010100100000000000000000000011111111111111111111111111111110101';
     let visualizer;
-    if (savedSettings.compressionMethod === "bbc"){
-        visualizer = new bbcVis(canvasId, compressedContentId, savedInputData);
+    if (settings.compressionMethod === "bbc") {
+        visualizer = new bbcVis(canvasId, compressedContentId, inputBitstring);
     }
-    else{
-        visualizer = new wahVis(canvasId, compressedContentId, states, wordSize, litSize, numSegments, savedInputData);
+    else {
+        visualizer = new wahVis(canvasId, compressedContentId, states, wordSize, litSize, numSegments, inputBitstring);
     }
     // Function to scroll to the end of the compressed content
     function scrollToEnd() {
@@ -58,7 +64,7 @@ if ((savedSettings.compressionMethod in ["wah", "val", "bbc"]) || savedSettings.
         compressedContent.style.display = 'none';
         compressedContent.offsetHeight; // Force reflow
         compressedContent.style.display = 'block';
-        
+
         // Use requestAnimationFrame to ensure DOM updates are complete
         requestAnimationFrame(() => {
             compressedContent.scrollTo({
@@ -69,29 +75,71 @@ if ((savedSettings.compressionMethod in ["wah", "val", "bbc"]) || savedSettings.
     }
 
     // Add event listeners for buttons
-    document.getElementById('next-step').addEventListener('click', function() {
+    document.getElementById('next-step').addEventListener('click', function () {
         visualizer.transitionNext();
         setTimeout(scrollToEnd, 600); // Increased delay
     });
-    document.getElementById('micro-step').addEventListener('click', function() {
+    document.getElementById('micro-step').addEventListener('click', function () {
         visualizer.transitionMicro();
         setTimeout(scrollToEnd, 500); // Increased delay
     });
-    document.getElementById('back-step').addEventListener('click', function() {
+    document.getElementById('back-step').addEventListener('click', function () {
         visualizer.stepBack();
-        
+
     });
-    document.getElementById('reset-btn').addEventListener('click', function() {
+    document.getElementById('reset-btn').addEventListener('click', function () {
         visualizer.reset();
-        
     });
-
-    window.addEventListener('compressionSettingsUpdated', function() {
-        alert('Compression settings have been updated - refresh to see changes')
-        //TODO 
-        //pull most recent visualization code from main 
-        //reset the visualization canvas with new settings 
-
-    });
-
 }
+
+const inputField = document.getElementById('input-data');
+const outputField = document.getElementById('compressed-output');
+
+function initTextFields() {
+    // Load saved input data from localStorage
+    const savedInputData = localStorage.getItem('inputBitstring');
+    if (savedInputData !== null) {
+        inputField.value = savedInputData
+    }
+
+    // Initial update of the output field
+    inputField.value = inputField.value.match(/.{1,8}/g)?.join(' ') || inputField.value;
+
+    inputField.addEventListener('input', event => {
+        // ensure only 1 and 0 are entered
+        event.target.value = event.target.value.replace(/[^01]/g, '');
+
+        // Save input data to localStorage
+        localStorage.setItem('inputBitstring', event.target.value);
+        updateOutputField();
+
+        // Format the inputfield to have spaces between bytes
+        inputField.value = inputField.value.match(/.{1,8}/g)?.join(' ') || inputField.value;
+    });
+    updateOutputField();
+}
+
+function updateOutputField() {
+    let inputBitstring = outputField.value;
+    if (inputBitstring) {
+        inputBitstring = inputField.value.replace(/[^01]/g, '');
+    }
+
+    const compressionMethod = animSettings.getSettings().compressionMethod;
+
+    let output = compress(inputBitstring, animSettings.getSettings(), false);
+    if (compressionMethod == 'bbc') {
+        output = output.match(/.{1,8}/g)?.join(' ') || output; // Regex optional
+    }
+    outputField.value = output;
+
+    document.getElementById('animationContainer').classList.add('d-none');
+    document.getElementById('animationInstructionContainer').classList.remove('d-none');
+    initAnimation(localStorage.getItem('inputBitstring'), animSettings.getSettings());
+}
+
+
+let animSettings = new AnimSettingsManager(updateOutputField);
+animSettings.init();
+initAnimation("", animSettings.getSettings());
+initTextFields();
