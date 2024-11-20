@@ -120,7 +120,7 @@ function initTextFields() {
 }
 
 function updateOutputField() {
-    let inputBitstring = outputField.value;
+    let inputBitstring = inputField.value;
     if (inputBitstring) {
         inputBitstring = inputField.value.replace(/[^01]/g, '');
     }
@@ -135,6 +135,7 @@ function updateOutputField() {
 
     document.getElementById('animationContainer').classList.add('d-none');
     document.getElementById('animationInstructionContainer').classList.remove('d-none');
+
     initAnimation(localStorage.getItem('inputBitstring'), animSettings.getSettings());
 }
 

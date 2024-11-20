@@ -83,8 +83,8 @@ export class AnimSettingsManager {
             if (clickedButton) {
                 clickedButton.classList.add('active');
             }
-            this.updateFunction();
             this.saveSettings(settings);
+            this.updateFunction();
         }
 
         this.wahButton.addEventListener("click", () => {
