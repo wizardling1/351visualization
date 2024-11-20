@@ -1,21 +1,15 @@
 .controls {
     display: flex;
     justify-content: space-between;
-    flex-wrap: wrap;
 }
 
 .visualization {
     border: 1px solid #ddd;
     border-radius: 8px;
     background-color: #eee;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-style: italic;
-    color: #777;
     margin-bottom: 1rem;
     padding: 1rem;
-    box-sizing: border-box;
+    min-height: 400px;
 }
 
 #compressedSoFar {
