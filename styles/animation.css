@@ -13,7 +13,7 @@
 }
 
 #animationInstructionText {
-    color: gray;
+    color: grey;
 }
 
 #compressedSoFar {
@@ -28,7 +28,8 @@
     overflow-y: hidden;
     white-space: nowrap;
     padding: 10px;
-    background-color: #fff;
+    color: var(--text);
+    background-color: var(--background-50);
     border: 1px solid #ddd;
     border-radius: 4px;
     margin-top: 10px;

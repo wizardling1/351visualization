@@ -1,7 +1,9 @@
 changelog
-- moved to boostrap 5.3 (perhaps unneccessary, though more secure)
-- added navbar html element so navbar can be reused
 - combined animation and live view pages
     - now using bootstrap for most buttons/fields/spacing
 - refactored css files to be more modular/isolated
+- modified design
+- added dark mode (doesn't work well yet)
+- moved to boostrap 5.3 (perhaps unneccessary, though more secure)
+- added navbar html element so navbar can be reused
 - added daniel's github pages link to readme
