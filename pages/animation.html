@@ -21,7 +21,7 @@
     <script src="../components/navbar.js" type="text/javascript"></script>
     <nav-bar active-link="animation.html"></nav-bar>
 
-    <div class="container mt-3 mb-3">
+    <div class="container mb-3">
         <!-- Input header -->
         <div class="row">
             <div class="col-lg-4 mb-3">
@@ -34,9 +34,9 @@
                         </div>
                         <div class="col-8">
                             <div class="btn-group selection-row" id="compressionSelector">
-                                <button class="btn btn-secondary active" id='wahButton'>WAH</button>
-                                <button class="btn btn-secondary" id='valButton'>VAL</button>
-                                <button class="btn btn-secondary " id='bbcButton'>BBC</button>
+                                <button class="btn btn-primary active" id='wahButton'>WAH</button>
+                                <button class="btn btn-primary" id='valButton'>VAL</button>
+                                <button class="btn btn-primary " id='bbcButton'>BBC</button>
                             </div>
                         </div>
                     </div>
@@ -46,9 +46,9 @@
                         </div>
                         <div class="col-8">
                             <div class="btn-group selection-row " id="wordSizeSelector">
-                                <button class="btn btn-secondary active" data-bs-toggle="button" id="wordSize8Button">8</button>
-                                <button class="btn btn-secondary" id="wordSize16Button">16</button>
-                                <button class="btn btn-secondary" id="wordSize32Button">32</button>
+                                <button class="btn btn-primary active" data-bs-toggle="button" id="wordSize8Button">8</button>
+                                <button class="btn btn-primary" id="wordSize16Button">16</button>
+                                <button class="btn btn-primary" id="wordSize32Button">32</button>
                             </div>
                         </div>
                     </div>
@@ -59,10 +59,10 @@
                         </div>
                         <div class="col-8">
                             <div class="btn-group selection-row" id="segmentCountSelector" style="min-height: 38px">
-                                <button class="btn btn-secondary" style="display: none">1</button>
-                                <button class="btn btn-secondary active" style="display: none" id="segmentCount2Button">2</button>
-                                <button class="btn btn-secondary" style="display: none">4</button>
-                                <button class="btn btn-secondary" style="display: none">8</button>
+                                <button class="btn btn-primary" style="display: none">1</button>
+                                <button class="btn btn-primary active" style="display: none" id="segmentCount2Button">2</button>
+                                <button class="btn btn-primary" style="display: none">4</button>
+                                <button class="btn btn-primary" style="display: none">8</button>
                             </div>
                         </div>
                     </div>
@@ -73,7 +73,8 @@
                 <textarea id="input-data"
                     placeholder="Enter yout bitmap data (1s and 0s)"
                     class="form-control diff-input"
-                    rows="6"></textarea>
+                    rows="6">
+                </textarea>
                 <div id="word-size-container" class="word-size hidden">
                     <label for="word-size">Word Size:</label>
                     <input type="number" id="word-size" min="2" value="32">
@@ -85,7 +86,8 @@
                     readonly
                     placeholder="Compressed bits will appear here"
                     class="form-control diff-input"
-                    rows="6"></textarea>
+                    rows="6">
+                </textarea>
             </div>
         </div>
         <!-- Visualization -->
@@ -101,10 +103,10 @@
                     <div class="row mt-3">
                         <div class="col">
                             <div class="controls">
-                                <button class="btn btn-secondary" id="back-step">Back Step</button>
-                                <button class="btn btn-secondary" id="micro-step">Micro Step</button>
-                                <button class="btn btn-secondary" id="next-step">Next Step</button>
-                                <button class="btn btn-secondary" id="reset-btn">Reset</button>
+                                <button class="btn btn-primary" id="back-step">Back Step</button>
+                                <button class="btn btn-primary" id="micro-step">Micro Step</button>
+                                <button class="btn btn-primary" id="next-step">Next Step</button>
+                                <button class="btn btn-primary" id="reset-btn">Reset</button>
                             </div>
                         </div>
                     </div>

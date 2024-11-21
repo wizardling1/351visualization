@@ -6,10 +6,14 @@
 .visualization {
     border: 1px solid #ddd;
     border-radius: 8px;
-    background-color: #eee;
+    background-color: var(--background-50);
     margin-bottom: 1rem;
     padding: 1rem;
     min-height: 400px;
+}
+
+#animationInstructionText {
+    color: gray;
 }
 
 #compressedSoFar {
