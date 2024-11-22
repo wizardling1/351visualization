@@ -1,11 +1,13 @@
 import { getValSegmentLength } from '../compression/raw_compression/val.js';
 import { simplifyString, decimalToBinary, drawArrow } from './helperFunctions.js';
+import { numberToPlaceString } from '../visualization_common.js';
 
 class wahVis {
-    constructor(canvasId, compressedContentId, states, wordSize, litSize, numSegments, uncompressed) {
+    constructor(canvasId, compressedContentId, stepDescriptionId, states, wordSize, litSize, numSegments, uncompressed) {
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext('2d');
         this.compressedContentElement = document.getElementById(compressedContentId);
+        this.stepDescriptionElement = document.getElementById(stepDescriptionId);
         this.states = states;
         this.wordSize = wordSize;
         this.litSize = litSize;
@@ -33,6 +35,8 @@ class wahVis {
     }
 
     drawCanvas(stateIndex, transition = 0, curr_run = this.states[stateIndex].runs) {
+        this.updateDescription(stateIndex, curr_run);
+
         const state = this.states[stateIndex];
 
         const ctx = this.ctx;
@@ -230,6 +234,38 @@ class wahVis {
         ctx.font = `bold 15px Arial`;
         ctx.fillStyle = 'black';
         ctx.fillText(`word : ${Math.ceil((this.currentStateIndex + 1) / this.numSegments)}`, canvasWidth - 100, canvasHeight - 10);
+    }
+
+    updateDescription(stateIndex, curr_run) {
+        const state = this.states[stateIndex];
+        const currentSegmentIndex = stateIndex % this.numSegments;
+
+        let segmentDescription = "";
+
+        if (this.numSegments != 1) {
+            const place = numberToPlaceString(currentSegmentIndex + 1);
+            segmentDescription = ` in the ${place} segment`;
+
+            if (currentSegmentIndex == 0) {
+                segmentDescription += " of a new word";
+            } else {
+                segmentDescription += " of the same word";
+            }
+        }
+
+        let runDescription = "";
+
+        if (state.runs != curr_run) {
+            runDescription = `${curr_run} out of ${state.runs}`;
+        } else {
+            runDescription = `${state.runs}`;
+        }
+
+        if (state.runs === 0) {
+            this.stepDescriptionElement.innerText = `Adding a literal to the compressed output${segmentDescription}.`;
+        } else {
+            this.stepDescriptionElement.innerText = `Compressing ${runDescription} runs of ${state.runType}s${segmentDescription}.`;
+        }
     }
 
     makeCompressedForMicroStep(stateIndex, curr_run) {
