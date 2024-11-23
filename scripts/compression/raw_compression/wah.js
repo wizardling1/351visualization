@@ -51,6 +51,7 @@ export const wahCompress = (string, wordSize, returnStates = false) => {
                         runType: '1',
                         startIndex: currentStartIndex,
                         compressed: wordAsString(compressed[index - 1], wordSize),
+                        uncompressed: string.slice(currentStartIndex, i + chunkSize),
                     });
                 }
                 runOnes = cast(0);
@@ -68,6 +69,7 @@ export const wahCompress = (string, wordSize, returnStates = false) => {
                         runType: '0',
                         startIndex: currentStartIndex,
                         compressed: wordAsString(compressed[index - 1], wordSize),
+                        uncompressed: string.slice(currentStartIndex, i + chunkSize),
                     });
                 }
                 runZeros = cast(0);
@@ -82,6 +84,7 @@ export const wahCompress = (string, wordSize, returnStates = false) => {
                         runType: '0',
                         startIndex: currentStartIndex,
                         compressed: wordAsString(compressed[index - 1], wordSize),
+                        uncompressed: string.slice(currentStartIndex, i + chunkSize),
                     });
                 }
                 runZeros = cast(0);
@@ -99,6 +102,7 @@ export const wahCompress = (string, wordSize, returnStates = false) => {
                         runType: '1',
                         startIndex: currentStartIndex,
                         compressed: wordAsString(compressed[index - 1], wordSize),
+                        uncompressed: string.slice(currentStartIndex, i + chunkSize),
                     });
                 }
                 runOnes = cast(0);
@@ -113,6 +117,7 @@ export const wahCompress = (string, wordSize, returnStates = false) => {
                         runType: '1',
                         startIndex: currentStartIndex,
                         compressed: wordAsString(compressed[index - 1], wordSize),
+                        uncompressed: string.slice(currentStartIndex, i + chunkSize),
                     });
                 }
                 runOnes = cast(0);
@@ -124,6 +129,7 @@ export const wahCompress = (string, wordSize, returnStates = false) => {
                         runType: '0',
                         startIndex: currentStartIndex,
                         compressed: wordAsString(compressed[index - 1], wordSize),
+                        uncompressed: string.slice(currentStartIndex, i + chunkSize),
                     });
                 }
                 runZeros = cast(0);
@@ -136,6 +142,7 @@ export const wahCompress = (string, wordSize, returnStates = false) => {
                     runType: '',
                     startIndex: i,
                     compressed: wordAsString(compressed[index - 1], wordSize),
+                    uncompressed: chunkStr,
                 });
             }
             currentStartIndex = i + chunkSize;
@@ -150,6 +157,7 @@ export const wahCompress = (string, wordSize, returnStates = false) => {
                 runType: '1',
                 startIndex: currentStartIndex,
                 compressed: wordAsString(compressed[index - 1], wordSize),
+                uncompressed: string.slice(currentStartIndex),
             });
         }
     } else if (runZeros > 0) {//encode run of 0
@@ -160,6 +168,7 @@ export const wahCompress = (string, wordSize, returnStates = false) => {
                 runType: '0',
                 startIndex: currentStartIndex,
                 compressed: wordAsString(compressed[index - 1], wordSize),
+                uncompressed: string.slice(currentStartIndex),
             });
         }
     }
