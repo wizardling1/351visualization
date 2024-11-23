@@ -1,12 +1,12 @@
 import { getValSegmentLength } from '../compression/raw_compression/val.js';
-import { simplifyString, decimalToBinary, drawArrow } from './helperFunctions.js';
+import { simplifyString, decimalToBinary, drawArrow, insertSpaceEveryNChars, updateStartIndices } from './helperFunctions.js';
 
 class wahVis {
     constructor(canvasId, compressedContentId, states, wordSize, litSize, numSegments, uncompressed) {
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext('2d');
         this.compressedContentElement = document.getElementById(compressedContentId);
-        this.states = states;
+        this.states = updateStartIndices(states, litSize);
         this.wordSize = wordSize;
         this.litSize = litSize;
         this.numSegments = numSegments;
@@ -15,7 +15,8 @@ class wahVis {
         this.currentStateIndex = 0;
         this.currRunShown = states[this.currentStateIndex].runs;
 
-        this.uncompressed = uncompressed;
+        this.uncompressed = insertSpaceEveryNChars(uncompressed, litSize);
+        //this.uncompressed = uncompressed;
 
         // Canvas setup
         const canvasWidth = 600;
@@ -38,36 +39,39 @@ class wahVis {
         const ctx = this.ctx;
         const canvasWidth = 600;
         const canvasHeight = 300;
-    
+        
+        // clears the screen
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     
-        // Uncompressed display
+        // font nees to be set up here for calculations
         ctx.font = `30px monospace`;
         ctx.fillStyle = 'black';
     
         
-    
         const uncompressedDigitWidth = ctx.measureText("0").width;
-        const start_point = - (transition * this.litSize * uncompressedDigitWidth);
+        const start_point = - (transition * (this.litSize + 1) * uncompressedDigitWidth);
 
         // Calculate the number of digits that can fit in the canvas width
         const canFit = Math.ceil(canvasWidth / uncompressedDigitWidth);
         let current_uncompressed;
     
         
-        
         // get the highlight in the middle
         const highlightStartDigit = Math.floor(Math.floor(canvasWidth/uncompressedDigitWidth)/2) - Math.floor(this.litSize / 2)
         let highlightWidth = this.litSize * uncompressedDigitWidth;
         let highlightStart = highlightStartDigit  * uncompressedDigitWidth;
+        
         let uncompressedStartIndex = state.startIndex;
-        uncompressedStartIndex += curr_run === 0 ? 0 : (curr_run - 1) * this.litSize;
+        uncompressedStartIndex += curr_run === 0 ? 0 : (curr_run - 1) * this.litSize + (curr_run - 1);
         // first if we dont have enough digits before start then fill with spaces
         if (state.runs > 1 && curr_run == state.runs) {    // here we simplify the runs displayed
     
             // the simplifyString function turns a bunch of runs into 11..11
             let simplifiedString = simplifyString(state.runType, this.litSize);
-            const new_start = state.startIndex + this.litSize * state.runs;
+
+
+            const new_start = state.startIndex + this.litSize * state.runs +state.runs - 1 ;
+
             current_uncompressed = simplifiedString + this.uncompressed.substring(new_start, new_start + canFit);
         } else {
             
@@ -268,14 +272,14 @@ class wahVis {
             // Moving forward, append new compressed code
             for (let i = this.prevStateIndex; i < numOfStates; i++) {
                 if (this.isIndexIncludedInCompressed(i)) {
-                    this.compressedSoFar += this.states[i].compressed;
+                    this.compressedSoFar += this.states[i].compressed + " ";
                 }
             }
         } else if (numOfStates < this.prevStateIndex) {
             // Moving backward, remove compressed code
             for (let i = numOfStates; i < this.prevStateIndex; i++) {
                 if (this.isIndexIncludedInCompressed(i)) {
-                    const lengthToRemove = this.states[i].compressed.length;
+                    const lengthToRemove = this.states[i].compressed.length + 1;
                     this.compressedSoFar = this.compressedSoFar.slice(0, -lengthToRemove);
                 }
             }
