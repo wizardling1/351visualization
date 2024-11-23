@@ -1,5 +1,5 @@
 import { getValSegmentLength } from '../compression/raw_compression/val.js';
-import { simplifyString, decimalToBinary, drawArrow, insertSpaceEveryNChars, updateStartIndices } from './helperFunctions.js';
+import { simplifyString, decimalToBinary, drawArrow, insertSpaceEveryNChars, updateStartIndices, easeInOutQuad } from './helperFunctions.js';
 
 class wahVis {
     constructor(canvasId, compressedContentId, states, wordSize, litSize, numSegments, uncompressed) {
@@ -16,7 +16,6 @@ class wahVis {
         this.currRunShown = states[this.currentStateIndex].runs;
 
         this.uncompressed = insertSpaceEveryNChars(uncompressed, litSize);
-        //this.uncompressed = uncompressed;
 
         // Canvas setup
         const canvasWidth = 600;
@@ -303,18 +302,34 @@ class wahVis {
             this.updateCompressedSoFar(true);
             return;
         }
-        
-        // we are not on the last run, go to last run
-        if (this.currRunShown != fromState.runs) {
-            this.currRunShown = fromState.runs;
-            
-        // other wise go to the next state
-        } else if (this.currentStateIndex < this.states.length - 1) {
-            this.currentStateIndex++;
-            this.currRunShown = this.states[this.currentStateIndex].runs;
+        let totalMicroSteps = 1;
+        let targetStateIndex = this.currentStateIndex;
+        let targetRun = this.currRunShown;
+
+        // If currently on a literal and the next state is a run, micro step through to the end of that run
+        if (fromState.runs === 0 && this.currentStateIndex < this.states.length - 1 && this.states[this.currentStateIndex + 1].runs > 0) {
+            const nextState = this.states[this.currentStateIndex + 1];
+            totalMicroSteps = nextState.runs;
+            targetStateIndex = this.currentStateIndex + 1;
+            targetRun = nextState.runs;
         }
 
-        requestAnimationFrame(this.animate(fromStateIndex, fromRun, performance.now()).bind(this));
+        // if we are in the middle of a run state
+        else if (this.currRunShown != fromState.runs) { 
+            totalMicroSteps = fromState.runs - this.currRunShown;
+            targetRun = fromState.runs;
+
+        // if we are at the end of a state
+        } else if (this.currentStateIndex < this.states.length - 1) {
+            const nextState = this.states[this.currentStateIndex + 1];
+            if (nextState.runs > 0) { // next state is also a run
+                totalMicroSteps = nextState.runs;
+            }
+            targetStateIndex++;
+            targetRun = this.states[targetStateIndex].runs;
+        }
+
+        requestAnimationFrame(this.animate(fromStateIndex, fromRun, performance.now(), totalMicroSteps, targetStateIndex, targetRun).bind(this));
     }
 
     // transition to the next micro step eg.. one more run of current word
@@ -329,8 +344,8 @@ class wahVis {
             return;
         }
 
-        //if we are comming from a literal or end of run
-        if (fromState.runs == 0 || this.currRunShown == fromState.runs) {
+        //if we are coming from a literal or end of run
+        if (fromState.runs === 0 || this.currRunShown === fromState.runs) {
             this.currentStateIndex++;
             if (this.states[this.currentStateIndex].runs == 0){
                 //current state is a literal
@@ -344,7 +359,7 @@ class wahVis {
             this.currRunShown++;
         }
 
-        requestAnimationFrame(this.animate(fromStateIndex, fromRun, performance.now()).bind(this));
+        requestAnimationFrame(this.animate(fromStateIndex, fromRun, performance.now(), 1, this.currentStateIndex, this.currRunShown).bind(this));
     }
 
     // if we are in the middle of a state, or at the end we step back to the beginning
@@ -373,24 +388,46 @@ class wahVis {
         
         this.currentStateIndex = 0;
         this.currRunShown = this.states[this.currentStateIndex].runs;
-        // document.getElementById('nextButton').disabled = false;
-        // document.getElementById('microButton').disabled = false;
         this.compressedContentElement.innerText = '';
         this.drawCanvas(this.currentStateIndex);
         this.updateCompressedSoFar();
     }
 
     // animate between states.
-    animate(fromStateIndex, fromRun, startTime) {
+    animate(fromStateIndex, fromRun, startTime, totalMicroSteps, targetStateIndex, targetRun) {
         return (currentTime) => {
             const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / 500, 1);
+            const duration = 700 + (totalMicroSteps - 1) * 50; // Base duration of 700ms, plus 50ms for each additional micro step
+            const progress = Math.min(elapsed / duration, 1);
 
-            this.drawCanvas(fromStateIndex, progress, fromRun);
+            const easedProgress = easeInOutQuad(progress);
+
+            const microStepProgress = easedProgress * totalMicroSteps;
+            const currentMicroStep = Math.floor(microStepProgress);
+            const microStepFraction = microStepProgress - currentMicroStep;
+
+            let stateIndex = fromStateIndex;
+            let run = fromRun + currentMicroStep;
+
+            // Adjust stateIndex and run if transitioning to the next state
+            while (stateIndex < this.states.length && run > this.states[stateIndex].runs) {
+                run -= this.states[stateIndex].runs;
+                stateIndex++;
+            }
+
+            // Ensure stateIndex does not exceed the length of states array
+            if (stateIndex >= this.states.length) {
+                stateIndex = this.states.length - 1;
+                run = this.states[stateIndex].runs;
+            }
+
+            this.drawCanvas(stateIndex, microStepFraction, run);
 
             if (progress < 1) {
-                requestAnimationFrame(this.animate(fromStateIndex, fromRun, startTime).bind(this));
+                requestAnimationFrame(this.animate(fromStateIndex, fromRun, startTime, totalMicroSteps, targetStateIndex, targetRun).bind(this));
             } else {
+                this.currentStateIndex = targetStateIndex;
+                this.currRunShown = targetRun;
                 this.drawCanvas(this.currentStateIndex, 0, this.currRunShown);
                 this.updateCompressedSoFar();
             }
