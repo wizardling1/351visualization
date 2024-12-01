@@ -1,4 +1,5 @@
 import { bbcCompress } from "../compression/raw_compression/bbc.js";
+import { numberToPlaceString } from '../visualization_common.js';
 
 // Easing function (ease-in-out)
 function easeInOutQuad(t) {
@@ -6,13 +7,15 @@ function easeInOutQuad(t) {
 }
 
 class bbcVis {
-    constructor(canvasId, compressedContentId, uncompressed) {
+    constructor(canvasId, compressedContentId, stepDescriptionId, uncompressed) {
         // Get canvas and context
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext('2d');
 
         // Get the output compressed content element
         this.outputText = document.getElementById(compressedContentId);
+
+        this.stepDescriptionElement = document.getElementById(stepDescriptionId);
 
         // Get uncompressed bits and states
         this.uncompressed = uncompressed.match(/.{1,8}/g) || uncompressed;
@@ -38,7 +41,8 @@ class bbcVis {
     }
 
     drawCanvas(state, transition = 0, curr_run = 1) {
-        
+        this.updateDescription(state, curr_run);
+
         // Get context, clear canvas
         const ctx = this.ctx;
         const canvasWidth = 600;
@@ -187,7 +191,28 @@ class bbcVis {
         ctx.fillStyle = 'black';
         ctx.fillText(`word : ${this.currentStateIndex + 1}`, canvasWidth - 100, canvasHeight - 10);
     }
-    
+
+    updateDescription(state, curr_run) {
+        if (curr_run > state.runs && state.special) {
+            const location = this.uncompressed[state.startChunk + curr_run - 1].indexOf(1);
+
+            this.stepDescriptionElement.innerText = `Compressing a dirty bit at location ${location} in the literal.`;
+        } else if (curr_run > state.runs && !state.special) {
+            const place = numberToPlaceString(curr_run - state.runs);
+
+            this.stepDescriptionElement.innerText = `Adding the ${place} literal to the compressed output.`;
+        } else {
+            let runDescription = "";
+
+            if (state.runs != curr_run) {
+                runDescription = `${curr_run} out of ${state.runs}`;
+            } else {
+                runDescription = `${state.runs}`;
+            }
+
+            this.stepDescriptionElement.innerText = `Compressing ${runDescription} runs of 0s.`;
+        }
+    }
 
     updateCompressedSoFar(lastElement = false) {
         let compressedSoFar = [];
