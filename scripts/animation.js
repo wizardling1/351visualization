@@ -171,5 +171,4 @@ function updateOutputField() {
 
 let animSettings = new AnimSettingsManager(updateOutputField);
 initTextFields();
-
 document.getElementById('dark-mode-toggle').addEventListener('click', function() {updateOutputField();});

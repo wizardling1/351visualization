@@ -12,6 +12,16 @@
     min-height: 400px;
 }
 
+@media (max-width: 767.98px) {
+    #animationCanvas {
+        max-height: 200px;
+        min-height: 200px;
+    }
+    .visualization {
+        min-height: 300px;
+    }
+}
+
 textarea {
     resize: none;
 }
