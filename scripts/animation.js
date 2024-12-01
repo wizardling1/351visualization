@@ -77,7 +77,7 @@ class AnimationControls {
             visualizer.stepBack();
         }
         this.resetFunction = function() {
-            visualizer.this.reset();
+            visualizer.reset();
         }
 
         // Add event listeners for buttons
