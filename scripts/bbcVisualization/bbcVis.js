@@ -210,7 +210,7 @@ class bbcVis {
                 runDescription = `${state.runs}`;
             }
 
-            this.stepDescriptionElement.innerText = `Compressing ${runDescription} runs of 0s.`;
+            this.stepDescriptionElement.innerText = `Compressing ${runDescription} run${state.runs > 1 ? "s" : ""} of 0s.`;
         }
     }
 
