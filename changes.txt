@@ -1,9 +1,0 @@
-changelog
-- combined animation and live view pages
-    - now using bootstrap for most buttons/fields/spacing
-- created new website theme
-- refactored css files to use new theme / be more modular
-- added dark mode (doesn't work well yet)
-- moved to boostrap 5.3 (perhaps unneccessary, though more secure)
-- added navbar html component so navbar can be reused
-- added daniel's github pages link to readme
