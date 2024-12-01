@@ -139,14 +139,6 @@ body {
     color: var(--text);
 }
 
-nav {
-    background-color: var(--background);
-}
-
-.navbar-brand {
-    color: var(--text);
-}
-
 textarea {
     color: var(--text) !important;
     background-color: var(--background-50) !important;
@@ -176,3 +168,29 @@ textarea::placeholder {
 .hidden {
     display: none;
 }
+
+/* navbar stuff */
+nav {
+    background-color: var(--background);
+}
+
+.navbar-brand {
+    color: var(--text);
+}
+
+.navbar-nav .nav-link.active {
+    color: var(--text);
+}
+
+.navbar-nav .nav-link {
+    color: gray;
+}
+
+#dark-mode-toggle:not(:disabled):not(.disabled):active {
+    border-color: transparent;
+}
+
+#dark-mode-toggle {
+    color: var(--text);
+}
+
