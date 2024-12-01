@@ -135,6 +135,9 @@ function initTextFields() {
     if (savedInputData !== null) {
         inputField.value = savedInputData
     }
+    else {
+        inputField.value = "";
+    }
 
     // Initial update of the output field
     inputField.value = inputField.value.match(/.{1,8}/g)?.join(' ') || inputField.value;
