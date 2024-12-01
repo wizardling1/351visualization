@@ -1,8 +1,6 @@
-import { getValSegmentLength } from '../compression/raw_compression/val.js';
-
+import { getValSegmentLength } from '../compression/val.js';
 import { simplifyString, decimalToBinary, drawArrow, insertSpaceEveryNChars, updateStartIndices, easeInOutQuad } from './helperFunctions.js';
 import { numberToPlaceString } from '../visualization_common.js';
-
 
 class wahVis {
     constructor(canvasId, compressedContentId, stepDescriptionId, states, wordSize, litSize, numSegments, uncompressed) {
@@ -33,9 +31,21 @@ class wahVis {
         this.canvas.style.height = `${canvasHeight}px`;
         this.ctx.scale(dpr, dpr);
 
+        // set the text color based on if we are in dark mode
+        this.textColor = getComputedStyle(document.body)
+                            .getPropertyValue('--text')
+                            .trim();
+
         // Initial draw
         this.drawCanvas(this.currentStateIndex);
         this.updateCompressedSoFar();
+    }
+
+    redrawCanvas() {
+        this.textColor = getComputedStyle(document.body)
+                            .getPropertyValue('--text')
+                            .trim();
+        this.drawCanvas(this.currentStateIndex);
     }
 
     drawCanvas(stateIndex, transition = 0, curr_run = this.states[stateIndex].runs) {
@@ -52,7 +62,7 @@ class wahVis {
     
         // font nees to be set up here for calculations
         ctx.font = `30px monospace`;
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = this.textColor;
     
         
         const uncompressedDigitWidth = ctx.measureText("0").width;
@@ -112,7 +122,7 @@ class wahVis {
 
         // Subtext
         ctx.font = `22px Arial`;
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = this.textColor;
         let top_text = state.runs === 0 ? 'Literal' : `${curr_run} runs of ${state.runType}'s`;
         ctx.fillText(top_text, 20, 100);
     
@@ -151,7 +161,7 @@ class wahVis {
 
         const runColor = "red";
         const runTypeColor = "blue";
-        const litColor = "black"
+        const litColor = this.textColor
         
 
         //generate the compressed bit for micro steps
@@ -159,7 +169,7 @@ class wahVis {
     
         //main compressed bit area
         ctx.font = `bold ${compressedFontSize}px monospace`;
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = this.textColor;
         ctx.fillText(compressed, 0, compresedH);
     
         // these calculations need to happen after the font size is set.
@@ -239,7 +249,7 @@ class wahVis {
     
         // Add small text in the bottom right that says current word we are on
         ctx.font = `bold 15px Arial`;
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = this.textColor;
         ctx.fillText(`word : ${Math.ceil((this.currentStateIndex + 1) / this.numSegments)}`, canvasWidth - 100, canvasHeight - 10);
     }
 

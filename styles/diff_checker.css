@@ -1,3 +1,7 @@
+.diff-checker {
+    margin-top: 1rem;
+}
+
 .diff {
     background-color: #fdd; /* Light red background for lines with differences */
 }
