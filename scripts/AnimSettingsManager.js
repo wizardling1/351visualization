@@ -121,8 +121,8 @@ export class AnimSettingsManager {
                 settings.numSegments = 2;
                 this.selectButton(this.numSegmentRow, settings.numSegments);
             }
-            this.updateFunction();
             this.saveSettings(settings);
+            this.updateFunction();
         }
 
         this.wordSizeRow.querySelectorAll('button').forEach(btn => {
