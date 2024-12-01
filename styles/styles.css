@@ -64,6 +64,10 @@
     --accent-800: #030066;
     --accent-900: #020033;
     --accent-950: #01001a;
+
+    --btn-primary: var(--primary-400);
+    --btn-primary-hover: var(--primary-500);
+    --btn-primary-active: var(--primary-500);
 }
 
 .dark-mode {
@@ -94,7 +98,7 @@
     --background-600: #5c5cd6;
     --background-700: #8585e0;
     --background-800: #adadeb;
-    --background-900: #d6d6f5;
+    --background-9ac00: #d6d6f5;
     --background-950: #ebebfa;
     
     --primary-50: #030e16;
@@ -132,6 +136,10 @@
     --accent-800: #9c99ff;
     --accent-900: #ceccff;
     --accent-950: #e6e5ff;
+
+    --btn-primary: var(--primary-400);
+    --btn-primary-hover: var(--primary-300);
+    --btn-primary-active: var(--primary-300);
 }
 
 body {
@@ -149,20 +157,18 @@ textarea::placeholder {
 }
 
 .btn-primary {
-    background-color: var(--primary-400);
-    border-color: var(--primary-400);
+    background-color: var(--btn-primary);
+    border-color: var(--btn-primary);
 }
-
 .btn-primary:hover {
-    background-color: var(--primary-500);
-    border-color: var(--primary-500); 
+    background-color: var(--btn-primary-hover);
+    border-color: var(--btn-primary-hover);
 }
-
 .btn-primary:not(:disabled):not(.disabled):active,
 .btn-primary:not(:disabled):not(.disabled).active,
 .show > .btn-primary.dropdown-toggle {
-    background-color: var(--primary-500);
-    border-color: var(--primary-500);
+    background-color: var(--btn-primary-active);
+    border-color: var(--btn-primary-active);
 }
 
 .hidden {
