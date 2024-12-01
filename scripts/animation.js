@@ -25,6 +25,71 @@ function compress(inputBitstring, settings, getStates) {
     }
 }
 
+const compressedContent = document.getElementById('compressedContent');
+
+// Function to scroll to the end of the compressed content
+function scrollToEnd() {
+    // Force a reflow to ensure content width is calculated correctly
+    compressedContent.style.display = 'none';
+    compressedContent.offsetHeight; // Force reflow
+    compressedContent.style.display = 'block';
+
+    // Use requestAnimationFrame to ensure DOM updates are complete
+    requestAnimationFrame(() => {
+        compressedContent.scrollTo({
+            left: compressedContent.scrollWidth,
+            behavior: 'smooth'
+        });
+    });
+}
+
+class AnimationControls {
+    constructor() {
+        // define buttons to control animations and their actions
+        this.nextStepButton = document.getElementById('next-step');
+        this.microStepButton = document.getElementById('micro-step');
+        this.backStepButton = document.getElementById('back-step');
+        this.resetButton = document.getElementById('reset-btn');
+
+        this.nextStepFunction = null;
+        this.microStepFunction = null;
+        this.backStepFunction = null;
+        this.resetFunction = null;
+    }
+
+    
+    setClickAction(visualizer) {
+        // remove old event listeners for buttons
+        if (this.nextStepFunction) this.nextStepButton.removeEventListener('click', this.nextStepFunction);
+        if (this.microStepFunction) this.microStepButton.removeEventListener('click', this.microStepFunction);
+        if (this.backStepFunction) this.backStepButton.removeEventListener('click', this.backStepFunction);
+        if (this.resetFunction) this.resetButton.removeEventListener('click', this.resetFunction);
+
+        this.nextStepFunction = function() {
+            visualizer.transitionNext();
+            setTimeout(scrollToEnd, 600); // Increased delay
+        }
+        this.microStepFunction = function() {
+            visualizer.transitionMicro();
+            setTimeout(scrollToEnd, 500); // Increased delay
+        }
+        this.backStepFunction = function() {
+            visualizer.stepBack();
+        }
+        this.resetFunction = function() {
+            visualizer.this.reset();
+        }
+
+        // Add event listeners for buttons
+        this.nextStepButton.addEventListener('click', this.nextStepFunction);
+        this.microStepButton.addEventListener('click', this.microStepFunction);
+        this.backStepButton.addEventListener('click', this.backStepFunction);
+        this.resetButton.addEventListener('click', this.resetFunction);
+    }
+}
+
+const animationControls = new AnimationControls();
+
 function initAnimation(inputBitstring, settings) {
     // If the input is empty, tell the user to add more input
     if (inputBitstring.length == 0) {
@@ -57,39 +122,8 @@ function initAnimation(inputBitstring, settings) {
     else {
         visualizer = new wahVis(canvasId, compressedContentId, states, wordSize, litSize, numSegments, inputBitstring);
     }
-    // Function to scroll to the end of the compressed content
-    function scrollToEnd() {
-        const compressedContent = document.getElementById('compressedContent');
-        // Force a reflow to ensure content width is calculated correctly
-        compressedContent.style.display = 'none';
-        compressedContent.offsetHeight; // Force reflow
-        compressedContent.style.display = 'block';
 
-        // Use requestAnimationFrame to ensure DOM updates are complete
-        requestAnimationFrame(() => {
-            compressedContent.scrollTo({
-                left: compressedContent.scrollWidth,
-                behavior: 'smooth'
-            });
-        });
-    }
-
-    // Add event listeners for buttons
-    document.getElementById('next-step').addEventListener('click', function () {
-        visualizer.transitionNext();
-        setTimeout(scrollToEnd, 600); // Increased delay
-    });
-    document.getElementById('micro-step').addEventListener('click', function () {
-        visualizer.transitionMicro();
-        setTimeout(scrollToEnd, 500); // Increased delay
-    });
-    document.getElementById('back-step').addEventListener('click', function () {
-        visualizer.stepBack();
-
-    });
-    document.getElementById('reset-btn').addEventListener('click', function () {
-        visualizer.reset();
-    });
+    animationControls.setClickAction(visualizer);
 }
 
 const inputField = document.getElementById('input-data');
@@ -121,27 +155,19 @@ function initTextFields() {
 
 function updateOutputField() {
     let inputBitstring = inputField.value;
-    let origInputBitstring = inputBitstring;
     if (inputBitstring) {
         inputBitstring = inputField.value.replace(/[^01]/g, '');
     }
 
-    const compressionMethod = animSettings.getSettings().compressionMethod;
-
     let output = compress(inputBitstring, animSettings.getSettings(), false);
+    const compressionMethod = animSettings.getSettings().compressionMethod;
     if (compressionMethod == 'bbc') {
         output = output.match(/.{1,8}/g)?.join(' ') || output; // Regex optional
     }
     outputField.value = output;
 
-    document.getElementById('animationContainer').classList.add('d-none');
-    document.getElementById('animationInstructionContainer').classList.remove('d-none');
-
-    initAnimation(origInputBitstring, animSettings.getSettings());
+    initAnimation(inputBitstring, animSettings.getSettings());
 }
 
-
 let animSettings = new AnimSettingsManager(updateOutputField);
-animSettings.init();
-initAnimation("", animSettings.getSettings());
 initTextFields();

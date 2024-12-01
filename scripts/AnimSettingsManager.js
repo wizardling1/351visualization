@@ -21,6 +21,8 @@ export class AnimSettingsManager {
         this.valButton = document.querySelector("#valButton");
         this.bbcButton = document.querySelector("#bbcButton");
         this.updateFunction = typeof updateFunction === 'function' ? updateFunction : () => {};
+
+        this.init();
     }
 
     init() {
@@ -28,7 +30,7 @@ export class AnimSettingsManager {
         this.initCompressionRow();	
         this.initWordSizeRow();
         this.initNumSegmentRow();
-        this.restoreSelections(); 
+        this.restoreSelections();
     }
 
     initButtonHighlighting() {
@@ -222,8 +224,5 @@ export class AnimSettingsManager {
         // Restore number of segments selection
         this.clearRowSelections(this.numSegmentRow);
         this.selectButton(this.numSegmentRow, this.getSettings().numSegments);
-
-        // Update the UI to reflect the restored settings
-        this.updateFunction();
     }
 }
