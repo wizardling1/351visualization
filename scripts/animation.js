@@ -104,6 +104,7 @@ function initAnimation(inputBitstring, settings) {
     let states = compress(inputBitstring, settings, true);
     const canvasId = 'animationCanvas';
     const compressedContentId = 'compressedContent';
+    const stepDescriptionId = 'stepDescription';
 
     const wordSize = settings.wordSize;
     let litSize = wordSize - 1;
@@ -116,11 +117,11 @@ function initAnimation(inputBitstring, settings) {
 
     // old test const uncompressed = '010100100000000000000000000011111111111111111111111111111110101';
     let visualizer;
-    if (settings.compressionMethod === "bbc") {
-        visualizer = new bbcVis(canvasId, compressedContentId, inputBitstring);
+    if (settings.compressionMethod === "bbc"){
+        visualizer = new bbcVis(canvasId, compressedContentId, stepDescriptionId, inputBitstring);
     }
-    else {
-        visualizer = new wahVis(canvasId, compressedContentId, states, wordSize, litSize, numSegments, inputBitstring);
+    else{
+        visualizer = new wahVis(canvasId, compressedContentId, stepDescriptionId, states, wordSize, litSize, numSegments, inputBitstring);
     }
 
     animationControls.setClickAction(visualizer);

@@ -175,6 +175,11 @@ textarea::placeholder {
     display: none;
 }
 
+.visualizationFooterItem {
+    margin-top: 20px;
+    font-size: 18px;
+}
+
 /* navbar stuff */
 nav {
     background-color: var(--background);
