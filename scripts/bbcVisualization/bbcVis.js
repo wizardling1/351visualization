@@ -35,6 +35,7 @@ class bbcVis {
 
         // Initial draw
         this.drawCanvas(this.states[0]);
+        this.updateCompressedSoFar();
     }
 
     drawCanvas(state, transition = 0, curr_run = 1) {
