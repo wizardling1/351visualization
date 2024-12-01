@@ -271,7 +271,7 @@ class wahVis {
         if (state.runs === 0) {
             this.stepDescriptionElement.innerText = `Adding a literal to the compressed output${segmentDescription}.`;
         } else {
-            this.stepDescriptionElement.innerText = `Compressing ${runDescription} runs of ${state.runType}s${segmentDescription}.`;
+            this.stepDescriptionElement.innerText = `Compressing ${runDescription} run${state.runs > 1 ? "s" : ""} of ${state.runType}s${segmentDescription}.`;
         }
     }
 
