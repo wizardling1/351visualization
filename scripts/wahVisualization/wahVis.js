@@ -41,6 +41,13 @@ class wahVis {
         this.updateCompressedSoFar();
     }
 
+    redrawCanvas() {
+        this.textColor = getComputedStyle(document.body)
+                            .getPropertyValue('--text')
+                            .trim();
+        this.drawCanvas(this.currentStateIndex);
+    }
+
     drawCanvas(stateIndex, transition = 0, curr_run = this.states[stateIndex].runs) {
         this.updateDescription(stateIndex, curr_run);
 

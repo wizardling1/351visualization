@@ -5,6 +5,11 @@ import { valCompress, getValSegmentLength } from './compression/val.js';
 import { bbcCompress } from './compression/bbc.js';
 import { AnimSettingsManager } from './AnimSettingsManager.js'
 
+const compressedContent = document.getElementById('compressedContent');
+const inputField = document.getElementById('input-data');
+const outputField = document.getElementById('compressed-output');
+const darkModeToggle = document.getElementById('dark-mode-toggle');
+
 function compress(inputBitstring, settings, getStates) {
     switch (settings.compressionMethod) {
         case 'wah':
@@ -24,8 +29,6 @@ function compress(inputBitstring, settings, getStates) {
                 return bbcCompress(inputBitstring);
     }
 }
-
-const compressedContent = document.getElementById('compressedContent');
 
 // Function to scroll to the end of the compressed content
 function scrollToEnd() {
@@ -89,6 +92,7 @@ class AnimationControls {
 }
 
 const animationControls = new AnimationControls();
+let redrawCanvas = null;
 
 function initAnimation(inputBitstring, settings) {
     // If the input is empty, tell the user to add more input
@@ -125,13 +129,62 @@ function initAnimation(inputBitstring, settings) {
     }
 
     animationControls.setClickAction(visualizer);
+
+    if (redrawCanvas != null) {
+        darkModeToggle.removeEventListener('click', redrawCanvas); 
+    }
+    redrawCanvas = visualizer.redrawCanvas.bind(visualizer);
+    darkModeToggle.addEventListener('click', redrawCanvas);
 }
 
-const inputField = document.getElementById('input-data');
-const outputField = document.getElementById('compressed-output');
 
-function initTextFields() {
-    // Load saved input data from localStorage
+function removeSpaces(input) {
+    if (input) input = input = input.replace(/[^01]/g, '');
+    return input;
+}
+
+function addSpacesToInput(input, settings) {
+    switch(settings.compressionMethod) {
+        case 'bbc':
+            input = input.match(/.{1,8}/g)?.join(' ') || input;
+            break;
+        case 'wah':
+        case 'val':
+            input = input.match(new RegExp(`.{1,${settings.wordSize-1}}`, 'g'))?.join(' ') 
+                || input;
+            break;
+    }
+    return input;
+}
+
+function addSpacesToOutput(compressedString, settings) {
+    let output = compressedString;
+    switch (settings.compressionMethod) {
+        case 'bbc':
+            output = output.match(/.{1,8}/g)?.join(' ') || output; // Regex optional
+            break;
+        case 'wah':
+        case 'val':
+            output = output.match(new RegExp(`.{1,${settings.wordSize}}`, 'g'))?.join(' ') || output;
+            break;
+    }
+    return output;
+}
+
+function initInputField() {
+    // set up input event
+    inputField.addEventListener('input', event => {
+        // ensure only 1 and 0 are entered
+        event.target.value = event.target.value.replace(/[^01]/g, '');
+        localStorage.setItem('inputBitstring', event.target.value);
+        const input = removeSpaces(inputField.value);
+        const settings = animSettings.getSettings();
+        updateOutputField(removeSpaces(input), settings);
+        initAnimation(removeSpaces(input), settings);
+        inputField.value = addSpacesToInput(input, settings);
+    });
+
+    // load cached input
     const savedInputData = localStorage.getItem('inputBitstring');
     if (savedInputData !== null) {
         inputField.value = savedInputData
@@ -139,40 +192,26 @@ function initTextFields() {
     else {
         inputField.value = "";
     }
-
-    // Initial update of the output field
-    inputField.value = inputField.value.match(/.{1,8}/g)?.join(' ') || inputField.value;
-
-    inputField.addEventListener('input', event => {
-        // ensure only 1 and 0 are entered
-        event.target.value = event.target.value.replace(/[^01]/g, '');
-
-        // Save input data to localStorage
-        localStorage.setItem('inputBitstring', event.target.value);
-        updateOutputField();
-
-        // Format the inputfield to have spaces between bytes
-        inputField.value = inputField.value.match(/.{1,8}/g)?.join(' ') || inputField.value;
-    });
-    updateOutputField();
+ 
+    // add spaces
+    inputField.value = addSpacesToInput(removeSpaces(inputField.value), animSettings.getSettings());
 }
 
-function updateOutputField() {
-    let inputBitstring = inputField.value;
-    if (inputBitstring) {
-        inputBitstring = inputField.value.replace(/[^01]/g, '');
-    }
-
-    let output = compress(inputBitstring, animSettings.getSettings(), false);
-    const compressionMethod = animSettings.getSettings().compressionMethod;
-    if (compressionMethod == 'bbc') {
-        output = output.match(/.{1,8}/g)?.join(' ') || output; // Regex optional
-    }
-    outputField.value = output;
-
-    initAnimation(inputBitstring, animSettings.getSettings());
+function updateOutputField(input, settings) {
+    let compressedString = compress(input, settings, false);
+    outputField.value = addSpacesToOutput(compressedString, settings);
 }
 
-let animSettings = new AnimSettingsManager(updateOutputField);
-initTextFields();
-document.getElementById('dark-mode-toggle').addEventListener('click', function() {updateOutputField();});
+function onSettingChange() {
+    const settings = animSettings.getSettings();
+    let input = removeSpaces(inputField.value);
+    updateOutputField(input, settings);
+    initAnimation(input, settings);
+    inputField.value = addSpacesToInput(removeSpaces(inputField.value), settings);
+}
+
+
+
+let animSettings = new AnimSettingsManager(onSettingChange);
+initInputField();
+onSettingChange();

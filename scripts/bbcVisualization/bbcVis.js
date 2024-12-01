@@ -45,6 +45,13 @@ class bbcVis {
         this.updateCompressedSoFar();
     }
 
+    redrawCanvas() {
+        this.textColor = getComputedStyle(document.body)
+                            .getPropertyValue('--text')
+                            .trim();
+        this.drawCanvas(this.states[this.currentStateIndex], 0, this.stateStep);   
+    }
+
     drawCanvas(state, transition = 0, curr_run = 1) {
         this.updateDescription(state, curr_run);
 
